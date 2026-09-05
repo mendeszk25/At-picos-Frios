@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atípicos Frios — Gravatá/PE | Loja de frios, congelados e bebidas</title>
+<meta name="description" content="Atípicos Frios: sabor que une, qualidade que faz a diferença. Loja física em Gravatá-PE com as melhores ofertas em frios, congelados, bebidas e churrasco. Peça pelo WhatsApp.">
+<link rel="icon" href="images/logo.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============================= HEADER ============================= -->
+<header class="header">
+  <div class="container header-inner">
+    <a href="#topo" class="marca" aria-label="Atípicos Frios - início">
+      <img src="images/logo-header-ref.png" alt="Atípicos Frios">
+    </a>
+
+    <nav class="nav-desktop" aria-label="Navegação principal">
+      <ul>
+        <li><a class="ativo" href="#topo">Início</a></li>
+        <li><a href="#catalogo">Produtos</a></li>
+        <li><a href="#ofertas">Ofertas</a></li>
+        <li><a href="#sobre">Sobre nós</a></li>
+        <li><a href="#localizacao">Contato</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-acoes">
+      <a href="#" class="btn btn-whats btn-peq" data-link="whatsappPedido" id="headerBtnWhats">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M20 12a8 8 0 1 1-14.9-4L4 4l4.1 1A8 8 0 0 1 20 12Z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+        Pedir
+      </a>
+      <button class="btn btn-admin-header btn-peq admin-access-trigger" type="button" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Adicionar produto
+      </button>
+      <button class="menu-toggle" id="botaoMenu" aria-label="Abrir menu" aria-expanded="false" aria-controls="menuMobile">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============================= MENU MOBILE ============================= -->
+<nav class="nav-mobile" id="menuMobile" aria-label="Navegação mobile" aria-hidden="true">
+  <ul>
+    <li><a href="#ofertas">🏷️ Ofertas da semana</a></li>
+    <li><a href="#catalogo">🛒 Catálogo completo</a></li>
+    <li><a href="#novidades">✨ Chegou na Atípicos</a></li>
+    <li><a href="#destaques">⭐ Destaques</a></li>
+    <li><a href="#sobre">🏠 Sobre a loja</a></li>
+    <li><a href="#instagram">📸 Instagram</a></li>
+    <li><a href="#localizacao">📍 Localização e horários</a></li>
+  </ul>
+  <div class="mobile-ctas">
+    <a href="#" class="btn btn-whats btn-bloco" data-link="whatsappPedido">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M20 12a8 8 0 1 1-14.9-4L4 4l4.1 1A8 8 0 0 1 20 12Z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+      Pedir pelo WhatsApp
+    </a>
+    <button class="btn btn-primario btn-bloco admin-access-trigger" type="button" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Adicionar produto
+    </button>
+    <a href="#" class="btn btn-vermelho btn-bloco" data-ifood style="display:none;">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9-4-9-9-9Zm1 13h-2v-6h2v6Zm0-8h-2V6h2v2Z" fill="currentColor"/></svg>
+      Pedir pelo iFood
+    </a>
+    <a href="https://www.instagram.com/atipicosfrios/" class="btn btn-contorno btn-bloco" target="_blank" rel="noopener noreferrer">
+      Ver no Instagram
+    </a>
+  </div>
+</nav>
+
+<main id="topo">
+
+  <!-- ============================= HERO ============================= -->
+  <section class="hero hero-referencia" aria-label="Ofertas e produtos Atípicos Frios">
+    <div class="hero-reference-frame">
+      <img src="images/hero-referencia.png" alt="Ofertas e produtos selecionados para sua mesa, com frios, laticínios, bebidas e mercearia">
+
+      <!-- Áreas clicáveis posicionadas sobre os botões presentes na arte -->
+      <a class="hero-hotspot hero-hotspot-catalogo" href="#catalogo" aria-label="Ver catálogo"></a>
+      <a class="hero-hotspot hero-hotspot-pedido" href="#" data-link="whatsappPedido" aria-label="Fazer pedido pelo WhatsApp"></a>
+    </div>
+
+    <div class="hero-mobile-actions container">
+      <a href="#catalogo" class="btn btn-hero-catalogo">Ver catálogo <span aria-hidden="true">→</span></a>
+      <a href="#" class="btn btn-hero-whats" data-link="whatsappPedido">Fazer pedido</a>
+    </div>
+  </section>
+
+  <!-- ============================= OFERTAS DA SEMANA ============================= -->
+  <section class="secao" id="ofertas">
+    <div class="container">
+      <div class="faixa">Toda semana</div>
+      <div class="secao-cabeca">
+        <div>
+          <h2 class="secao-titulo">Ofertas da semana</h2>
+          <p class="secao-sub">Preços válidos enquanto durar o estoque.</p>
+        </div>
+        <div class="trilho-setas">
+          <button class="trilho-seta" id="setaEsq" aria-label="Ver ofertas anteriores">
+            <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="trilho-seta" id="setaDir" aria-label="Ver mais ofertas">
+            <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="trilho" id="trilhoOfertas">
+        <!-- Cards gerados por catalogo.js (oferta: true) -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= CATÁLOGO ============================= -->
+  <section class="secao" id="catalogo">
+    <div class="container">
+      <div class="faixa">Catálogo</div>
+      <h2 class="secao-titulo">Produtos disponíveis na loja</h2>
+      <p class="secao-sub">Preços podem variar. Confirme no WhatsApp antes de fazer seu pedido.</p>
+
+      <div class="busca-linha">
+        <div class="busca-wrapper">
+          <svg class="busca-icon" viewBox="0 0 24 24" fill="none" width="16" height="16"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="search" id="buscaProduto" class="busca-input" placeholder="Buscar produto..." aria-label="Buscar produto">
+        </div>
+        <label class="disponivel-toggle">
+          <input type="checkbox" id="filtroDisponivel">
+          Só disponíveis
+        </label>
+      </div>
+
+
+      <p class="aviso-sem-resultado" id="semResultados" style="display:none;">
+        Nenhum produto encontrado. Tente outro termo de busca.
+      </p>
+
+      <div class="grade-produtos" id="gradeProdutos">
+        <!-- Cards gerados por catalogo.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= CHEGOU NA ATÍPICOS ============================= -->
+  <section class="secao secao-escura" id="novidades">
+    <div class="container">
+      <div class="faixa">Recém-chegados</div>
+      <h2 class="secao-titulo">Chegou na Atípicos</h2>
+      <p class="secao-sub">As novidades mais recentes direto do nosso estoque.</p>
+      <div class="novidades-grid" id="novidadesGrid">
+        <!-- Cards gerados por catalogo.js (novo: true) -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= PRODUTOS EM DESTAQUE ============================= -->
+  <section class="secao" id="destaques">
+    <div class="container">
+      <div class="faixa">Preferidos da casa</div>
+      <h2 class="secao-titulo">Produtos em destaque</h2>
+      <p class="secao-sub">Os itens que mais saem da nossa loja em Gravatá.</p>
+      <div class="grade-destaques" id="gradeDestaques">
+        <!-- Cards gerados por catalogo.js (destaque: true) -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= SOBRE ============================= -->
+  <section class="secao secao-escura" id="sobre">
+    <div class="container sobre-grid">
+      <div class="sobre-img">
+        <img src="images/logo-sobre-hd.png" alt="Atípicos Frios">
+      </div>
+
+      <div class="sobre-conteudo">
+        <div class="faixa">Nossa história</div>
+        <h2 class="secao-titulo">Sobre a Atípicos Frios</h2>
+        <p class="secao-sub">
+          Somos uma loja física em Gravatá – PE, feita para quem busca
+          qualidade e preço justo no dia a dia. Cada oferta é pensada
+          para caber no seu bolso sem abrir mão do sabor.
+        </p>
+
+        <div class="sobre-lista">
+          <div class="sobre-item">
+            <div class="marcador">
+              <svg viewBox="0 0 24 24" fill="none" width="17" height="17"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z" stroke="var(--vermelho)" stroke-width="1.8"/><circle cx="12" cy="10" r="2.4" stroke="var(--vermelho)" stroke-width="1.8"/></svg>
+            </div>
+            <div>
+              <strong>Loja física em Gravatá – PE</strong>
+              <p>Atendimento presencial para você conferir a qualidade dos nossos produtos.</p>
+            </div>
+          </div>
+          <div class="sobre-item">
+            <div class="marcador">
+              <svg viewBox="0 0 24 24" fill="none" width="17" height="17"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" stroke="var(--vermelho)" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            </div>
+            <div>
+              <strong>Os melhores preços da região</strong>
+              <p>Ofertas renovadas toda semana para você economizar sem perder qualidade.</p>
+            </div>
+          </div>
+          <div class="sobre-item">
+            <div class="marcador">
+              <svg viewBox="0 0 24 24" fill="none" width="17" height="17"><circle cx="7" cy="19" r="1.6" stroke="var(--vermelho)" stroke-width="1.8"/><circle cx="17" cy="19" r="1.6" stroke="var(--vermelho)" stroke-width="1.8"/><path d="M2 3h2l2.4 12.2A2 2 0 0 0 8.4 17h8.2a2 2 0 0 0 2-1.6L20 7H6" stroke="var(--vermelho)" stroke-width="1.8"/></svg>
+            </div>
+            <div>
+              <strong>Delivery rápido e seguro</strong>
+              <p>Peça pelo WhatsApp e receba direitinho no seu endereço.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= INSTAGRAM ============================= -->
+  <section class="secao" id="instagram">
+    <div class="container">
+      <div class="insta-topo">
+        <div class="insta-perfil">
+          <img src="images/logo.png" alt="Atípicos Frios no Instagram">
+          <div>
+            <strong data-text="instagramHandle">@atipicosfrios</strong>
+            <span>Ofertas e novidades toda semana</span>
+          </div>
+        </div>
+        <a href="https://www.instagram.com/atipicosfrios/" class="btn btn-primario btn-peq" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor"/></svg>
+          Seguir no Instagram
+        </a>
+      </div>
+
+      <div class="grade-insta">
+        <a class="insta-item" href="https://www.instagram.com/atipicosfrios/" target="_blank" rel="noopener noreferrer"><img src="images/delivery.png" alt="Post: delivery Atípicos Frios" loading="lazy"></a>
+        <a class="insta-item" href="https://www.instagram.com/atipicosfrios/" target="_blank" rel="noopener noreferrer"><img src="images/morangos.png" alt="Post: morangos congelados" loading="lazy"></a>
+        <a class="insta-item" href="https://www.instagram.com/atipicosfrios/" target="_blank" rel="noopener noreferrer"><img src="images/oferta_dia.png" alt="Post: oferta do dia" loading="lazy"></a>
+        <a class="insta-item" href="https://www.instagram.com/atipicosfrios/" target="_blank" rel="noopener noreferrer"><img src="images/kit_churrasco.png" alt="Post: kit churrasco" loading="lazy"></a>
+        <a class="insta-item" href="https://www.instagram.com/atipicosfrios/" target="_blank" rel="noopener noreferrer"><img src="images/queijo_coalho.png" alt="Post: queijo coalho" loading="lazy"></a>
+        <a class="insta-item" href="https://www.instagram.com/atipicosfrios/" target="_blank" rel="noopener noreferrer"><img src="images/frios_bandeja.png" alt="Post: bandeja de frios" loading="lazy"></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= LOCALIZAÇÃO ============================= -->
+  <section class="secao secao-escura" id="localizacao">
+    <div class="container">
+      <div class="faixa">Venha nos visitar</div>
+      <h2 class="secao-titulo">Localização e horários</h2>
+      <p class="secao-sub">Estamos de portas abertas em Gravatá – PE.</p>
+
+      <div class="local-grid">
+        <div class="local-mapa">
+          <iframe id="mapaLoja" src="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa Atípicos Frios" allowfullscreen></iframe>
+        </div>
+
+        <div class="local-cartao">
+          <div class="local-linha">
+            <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z" stroke="var(--dourado)" stroke-width="1.8"/><circle cx="12" cy="10" r="2.4" stroke="var(--dourado)" stroke-width="1.8"/></svg>
+            <div>
+              <strong>Endereço</strong>
+              <p id="enderecoTexto">Gravatá – PE (endereço completo em breve)</p>
+            </div>
+          </div>
+
+          <div class="local-linha">
+            <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M12 8v4l3 2" stroke="var(--dourado)" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="var(--dourado)" stroke-width="1.8"/></svg>
+            <div>
+              <strong>Horário de funcionamento</strong>
+              <div class="horarios-lista" id="listaHorarios"></div>
+            </div>
+          </div>
+
+          <div class="local-linha">
+            <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M4 5h4l2 5-2.5 1.5a11 11 0 0 0 5 5L14 14l5 2v4a2 2 0 0 1-2 2A15 15 0 0 1 4 7a2 2 0 0 1 2-2Z" stroke="var(--dourado)" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            <div>
+              <strong>Telefone / WhatsApp</strong>
+              <p id="telefoneTexto">Em breve — chame no WhatsApp</p>
+            </div>
+          </div>
+
+          <div class="local-acoes">
+            <a href="#" class="btn btn-whats" data-link="whatsappPedido">
+              <svg viewBox="0 0 24 24" fill="none" width="17" height="17"><path d="M20 12a8 8 0 1 1-14.9-4L4 4l4.1 1A8 8 0 0 1 20 12Z" stroke="currentColor" stroke-width="1.8"/></svg>
+              Chamar no WhatsApp
+            </a>
+            <a href="#" class="btn btn-contorno" data-link="mapaLinkExterno" id="btnComoChegar">
+              <svg viewBox="0 0 24 24" fill="none" width="17" height="17"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.4" stroke="currentColor" stroke-width="1.8"/></svg>
+              Como chegar
+            </a>
+            <a href="#" class="btn btn-vermelho" data-ifood id="botaoIfood" style="display:none;">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Pedir pelo iFood
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= CTA FINAL ============================= -->
+  <section class="cta-final">
+    <div class="container cta-inner">
+      <div class="cta-texto">
+        <h2>Bateu a fome? A gente resolve.</h2>
+        <p>Chame agora no WhatsApp e garanta as ofertas da semana.</p>
+      </div>
+      <div class="cta-acoes">
+        <a href="#" class="btn btn-whats btn-grande" data-link="whatsappPedido">
+          <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M20 12a8 8 0 1 1-14.9-4L4 4l4.1 1A8 8 0 0 1 20 12Z" stroke="currentColor" stroke-width="1.8"/></svg>
+          Peça agora pelo WhatsApp
+        </a>
+        <a href="#" class="btn btn-vermelho btn-grande" data-ifood id="botaoIfoodCta" style="display:none;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Pedir pelo iFood
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================= FOOTER ============================= -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col-marca">
+        <div class="footer-marca">
+          <img src="images/logo.png" alt="Logo Atípicos Frios">
+          <span>ATÍPICOS FRIOS</span>
+        </div>
+        <p>Sabor que une, qualidade que faz a diferença. Loja física em Gravatá – PE.</p>
+        <div class="footer-social">
+          <a class="social-icon" href="https://www.instagram.com/mendeszk__/" target="_blank" rel="noopener noreferrer" aria-label="Instagram @mendeszk__">
+            <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor"/></svg>
+          </a>
+          <a class="social-icon" href="#" data-link="whatsappPedido" aria-label="WhatsApp">
+            <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M20 12a8 8 0 1 1-14.9-4L4 4l4.1 1A8 8 0 0 1 20 12Z" stroke="currentColor" stroke-width="1.8"/></svg>
+          </a>
+        </div>
+        <div class="footer-desenvolvedor">
+          <span>Desenvolvido por</span>
+          <a class="footer-desenvolvedor-link" href="https://www.instagram.com/mendeszk__/" target="_blank" rel="noopener noreferrer">@mendeszk__</a>
+        </div>
+      </div>
+
+      <div>
+        <h4>Navegação</h4>
+        <ul>
+          <li><a href="#ofertas">Ofertas</a></li>
+            <li><a href="#catalogo">Catálogo</a></li>
+          <li><a href="#sobre">Sobre a loja</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Loja</h4>
+        <ul>
+          <li><a href="https://www.instagram.com/atipicosfrios/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+          <li><a href="#localizacao">Localização</a></li>
+          <li><a href="#" data-ifood class="footer-ifood-link" style="display:none;">iFood</a></li>
+          <li><a href="https://chat.whatsapp.com/CsxujaYZeei1YS45ipOG" target="_blank" rel="noopener noreferrer">Grupo de ofertas</a></li>
+          <li><a href="?admin=1">Painel administrativo</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Horários</h4>
+        <ul id="footerHorarios"></ul>
+      </div>
+    </div>
+
+    <div class="footer-baixo">
+      <span>© <span id="anoAtual"></span> Atípicos Frios — Gravatá/PE. Todos os direitos reservados.</span>
+      <span>Feito com 🧀 para quem ama bom preço.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================= ACESSO ADMINISTRATIVO ============================= -->
+<div class="admin-login-overlay" id="modalAdminAcesso" aria-hidden="true">
+  <div class="admin-login-card" role="dialog" aria-modal="true" aria-labelledby="adminLoginTitulo">
+    <button class="admin-login-fechar" id="fecharAdminLogin" type="button" aria-label="Fechar">&times;</button>
+    <div class="admin-login-icone" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </div>
+    <span class="admin-login-kicker">Área restrita</span>
+    <h2 id="adminLoginTitulo">Adicionar produtos</h2>
+    <p>Digite a senha administrativa para abrir o painel do catálogo.</p>
+
+    <form id="formAdminAcesso" novalidate>
+      <label class="admin-login-label" for="senhaAdmin">Senha</label>
+      <div class="admin-login-input-wrap">
+        <input type="password" id="senhaAdmin" autocomplete="current-password" placeholder="Digite a senha" required>
+        <button class="admin-login-ver" id="alternarSenhaAdmin" type="button" aria-label="Mostrar senha">Mostrar</button>
+      </div>
+      <p class="admin-login-erro" id="erroAdminAcesso" role="alert" aria-live="polite"></p>
+      <div class="admin-login-acoes">
+        <button class="btn btn-primario" type="submit">Entrar no painel</button>
+        <button class="btn btn-contorno" id="cancelarAdminLogin" type="button">Cancelar</button>
+      </div>
+    </form>
+    <small>O acesso é destinado somente à administração da loja.</small>
+  </div>
+</div>
+
+<!-- ============================= CARRINHO / RESUMO DO PEDIDO ============================= -->
+<button class="carrinho-flutuante" id="abrirCarrinho" type="button" aria-label="Abrir resumo do pedido">
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+    <path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L20 8H6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="10" cy="19" r="1.4" fill="currentColor"/><circle cx="17" cy="19" r="1.4" fill="currentColor"/>
+  </svg>
+  <span class="carrinho-flutuante-texto">Pedido</span>
+  <span class="carrinho-contagem" id="carrinhoContagem">0</span>
+</button>
+
+<div class="carrinho-overlay" id="carrinhoOverlay" aria-hidden="true">
+  <aside class="carrinho-painel" role="dialog" aria-modal="true" aria-labelledby="carrinhoTitulo">
+    <div class="carrinho-topo">
+      <div>
+        <span class="faixa">Seu pedido</span>
+        <h2 id="carrinhoTitulo">Resumo do pedido</h2>
+      </div>
+      <button class="carrinho-fechar" id="fecharCarrinho" type="button" aria-label="Fechar carrinho">&times;</button>
+    </div>
+
+    <div class="carrinho-itens" id="carrinhoItens">
+      <!-- Itens gerados por catalogo.js -->
+    </div>
+
+    <div class="carrinho-rodape">
+      <div class="carrinho-total-linha">
+        <span>Total do pedido</span>
+        <strong id="carrinhoTotal">R$ 0,00</strong>
+      </div>
+      <p class="carrinho-aviso-preco" id="carrinhoAvisoPreco" hidden>
+        Alguns itens estão sem preço cadastrado e serão confirmados no WhatsApp.
+      </p>
+
+      <label class="carrinho-retirada" for="retiradaNoLocal">
+        <input type="checkbox" id="retiradaNoLocal" name="retiradaNoLocal" aria-describedby="retiradaNoLocalDescricao">
+        <span class="carrinho-retirada-texto">
+          <strong>Retirada no local</strong>
+          <span id="retiradaNoLocalDescricao">Vou buscar meu pedido diretamente na Atípicos</span>
+        </span>
+      </label>
+
+      <button class="btn btn-whats btn-bloco carrinho-whatsapp" id="finalizarWhatsapp" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M20 12a8 8 0 1 1-14.9-4L4 4l4.1 1A8 8 0 0 1 20 12Z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+        Pedir pelo WhatsApp
+      </button>
+    </div>
+  </aside>
+</div>
+
+<!-- ============================= BOTÃO WHATSAPP FLUTUANTE ============================= -->
+<a href="#" class="whats-flutuante" aria-label="Chamar no WhatsApp" data-link="whatsappPedido">
+  <svg viewBox="0 0 24 24" fill="none" width="26" height="26"><path d="M20 12a8 8 0 1 1-14.9-4L4 4l4.1 1A8 8 0 0 1 20 12Z" fill="#06210f"/><path d="M20 12a8 8 0 1 1-14.9-4L4 4l4.1 1A8 8 0 0 1 20 12Z" stroke="#06210f" stroke-width="1.2"/></svg>
+</a>
+
+<script src="admin/config.js"></script>
+<script src="produtos.js"></script>
+<script src="admin/produtos-store.js"></script>
+<script src="catalogo.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
