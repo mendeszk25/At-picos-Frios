@@ -1,37 +1,27 @@
 /* ====================================================================
    ATÍPICOS FRIOS — admin.js
-   Toda a lógica do painel fala apenas com ProdutosStore
-   (definido em produtos-store.js). Nenhuma chamada direta a
-   localStorage acontece aqui — assim, quando o site ganhar uma
-   API/banco de dados, só ProdutosStore precisa mudar.
+   Painel de produtos com seleção das seções de exibição.
    ==================================================================== */
 
 const ESTADO_ADMIN = {
   busca: '',
-  categoria: 'todos',
   status: 'todos',
-  edicaoId: null,   // id do produto em edição (null = criando um novo)
-  exclusaoId: null, // id do produto marcado para exclusão
+  edicaoId: null,
+  exclusaoId: null,
 };
+
+const IMAGEM_PADRAO_ADMIN = 'images/em-breve.png';
 
 document.addEventListener('DOMContentLoaded', () => {
   renderizarTabela();
-  preencherFiltroCategorias();
-
   configurarBusca();
   configurarFiltros();
   configurarModalProduto();
   configurarModalExclusao();
   configurarSaidaAdmin();
 
-  // Se os dados mudarem por outra aba (ex.: dois admins abertos),
-  // a tabela e os filtros se atualizam sozinhos.
-  ProdutosStore.aoAtualizar(() => {
-    renderizarTabela();
-    preencherFiltroCategorias();
-  });
+  ProdutosStore.aoAtualizar(() => renderizarTabela());
 });
-
 
 function configurarSaidaAdmin() {
   const btn = document.getElementById('btnSairAdmin');
@@ -42,13 +32,24 @@ function configurarSaidaAdmin() {
   });
 }
 
-/* =================================================================
-   Utilidades
-================================================================= */
 function slug(texto) {
   return (texto || '')
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+}
+
+function escaparHtml(texto) {
+  const div = document.createElement('div');
+  div.textContent = texto ?? '';
+  return div.innerHTML;
+}
+
+function escaparAtributo(texto) {
+  return String(texto ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 function formatarPrecoAdmin(produto) {
@@ -71,18 +72,29 @@ function mostrarToast(mensagem) {
   mostrarToast._t = setTimeout(() => toast.classList.remove('mostrar'), 2200);
 }
 
-/* =================================================================
-   Tabela principal
-================================================================= */
 function produtosFiltrados() {
   return ProdutosStore.listar().filter((p) => {
     const buscaOk = slug(p.nome).includes(slug(ESTADO_ADMIN.busca));
-    const categoriaOk = ESTADO_ADMIN.categoria === 'todos' || p.categoria === ESTADO_ADMIN.categoria;
     const statusOk = ESTADO_ADMIN.status === 'todos'
       || (ESTADO_ADMIN.status === 'ativo' && p.disponivel)
       || (ESTADO_ADMIN.status === 'inativo' && !p.disponivel);
-    return buscaOk && categoriaOk && statusOk;
+    return buscaOk && statusOk;
   });
+}
+
+function tagsSecoes(p) {
+  return [
+    p.catalogo !== false ? '<span class="etiqueta etiqueta-catalogo">Loja</span>' : '',
+    p.novo ? '<span class="etiqueta etiqueta-novo">Chegou</span>' : '',
+    p.oferta ? '<span class="etiqueta etiqueta-oferta">Oferta</span>' : '',
+    p.destaque ? '<span class="etiqueta etiqueta-destaque">Destaque</span>' : '',
+  ].join('');
+}
+
+function caminhoImagemAdmin(imagem) {
+  const valor = imagem || IMAGEM_PADRAO_ADMIN;
+  if (/^(data:|https?:\/\/|blob:|\/|\.\.\/)/i.test(valor)) return valor;
+  return valor.startsWith('images/') ? `../${valor}` : valor;
 }
 
 function renderizarTabela() {
@@ -105,22 +117,15 @@ function renderizarTabela() {
     <tr class="${p.disponivel ? '' : 'inativo'}" data-id="${p.id}">
       <td class="col-img">
         <div class="linha-thumb">
-          ${p.imagem ? `<img src="${escaparAtributo(p.imagem)}" alt="">` : ''}
+          <img src="${escaparAtributo(caminhoImagemAdmin(p.imagem))}" alt="" data-admin-img>
         </div>
       </td>
       <td>
         <div class="linha-produto-nome">${escaparHtml(p.nome)}</div>
         <div class="linha-produto-desc">${escaparHtml(p.descricao || '')}</div>
       </td>
-      <td>${escaparHtml(p.categoria || '—')}</td>
       <td>${formatarPrecoAdmin(p)}</td>
-      <td>
-        <div class="tags-etiquetas">
-          ${p.novo ? '<span class="etiqueta etiqueta-novo">Novo</span>' : ''}
-          ${p.oferta ? '<span class="etiqueta etiqueta-oferta">Oferta</span>' : ''}
-          ${p.destaque ? '<span class="etiqueta etiqueta-destaque">Destaque</span>' : ''}
-        </div>
-      </td>
+      <td><div class="tags-etiquetas">${tagsSecoes(p) || '<span class="linha-preco-vazio">Nenhuma seção</span>'}</div></td>
       <td>
         <label class="interruptor" title="Ativar/Desativar produto">
           <input type="checkbox" class="chk-status" data-id="${p.id}" ${p.disponivel ? 'checked' : ''}>
@@ -136,6 +141,10 @@ function renderizarTabela() {
       </td>
     </tr>
   `).join('');
+
+  corpo.querySelectorAll('[data-admin-img]').forEach((img) => {
+    img.onerror = () => { img.src = '../images/em-breve.png'; };
+  });
 
   corpo.querySelectorAll('.chk-status').forEach((chk) => {
     chk.addEventListener('change', () => {
@@ -153,18 +162,6 @@ function renderizarTabela() {
   });
 }
 
-function escaparHtml(texto) {
-  const div = document.createElement('div');
-  div.textContent = texto ?? '';
-  return div.innerHTML;
-}
-function escaparAtributo(texto) {
-  return (texto ?? '').replace(/"/g, '&quot;');
-}
-
-/* =================================================================
-   Busca e filtros
-================================================================= */
 function configurarBusca() {
   document.getElementById('buscaAdmin').addEventListener('input', (e) => {
     ESTADO_ADMIN.busca = e.target.value;
@@ -172,37 +169,13 @@ function configurarBusca() {
   });
 }
 
-function preencherFiltroCategorias() {
-  const select = document.getElementById('filtroCategoriaAdmin');
-  const valorAtual = select.value || 'todos';
-  const categorias = ProdutosStore.listarCategorias();
-
-  select.innerHTML = '<option value="todos">Todas as categorias</option>'
-    + categorias.map((c) => `<option value="${escaparAtributo(c)}">${escaparHtml(c)}</option>`).join('');
-
-  select.value = categorias.includes(valorAtual) ? valorAtual : 'todos';
-
-  // Também atualiza as sugestões do campo "categoria" do formulário
-  const datalist = document.getElementById('listaCategorias');
-  if (datalist) {
-    datalist.innerHTML = categorias.map((c) => `<option value="${escaparAtributo(c)}">`).join('');
-  }
-}
-
 function configurarFiltros() {
-  document.getElementById('filtroCategoriaAdmin').addEventListener('change', (e) => {
-    ESTADO_ADMIN.categoria = e.target.value;
-    renderizarTabela();
-  });
   document.getElementById('filtroStatusAdmin').addEventListener('change', (e) => {
     ESTADO_ADMIN.status = e.target.value;
     renderizarTabela();
   });
 }
 
-/* =================================================================
-   Modal: novo / editar produto
-================================================================= */
 function configurarModalProduto() {
   const fundo = document.getElementById('modalFundo');
   const form = document.getElementById('formProduto');
@@ -213,10 +186,7 @@ function configurarModalProduto() {
   fundo.addEventListener('click', (e) => { if (e.target === fundo) fecharModalProduto(); });
 
   document.getElementById('campoImagemArquivo').addEventListener('change', tratarUploadImagem);
-  document.getElementById('campoImagemUrl').addEventListener('input', (e) => {
-    atualizarPreviewImagem(e.target.value);
-  });
-
+  document.getElementById('campoImagemUrl').addEventListener('input', (e) => atualizarPreviewImagem(e.target.value));
   form.addEventListener('submit', salvarProduto);
 }
 
@@ -225,6 +195,7 @@ function abrirModalCriacao() {
   document.getElementById('modalTitulo').textContent = 'Novo produto';
   document.getElementById('formProduto').reset();
   document.getElementById('campoId').value = '';
+  document.getElementById('campoCatalogo').checked = true;
   document.getElementById('campoDisponivel').checked = true;
   atualizarPreviewImagem('');
   abrirModal('modalFundo');
@@ -238,12 +209,12 @@ function abrirModalEdicao(id) {
   document.getElementById('modalTitulo').textContent = 'Editar produto';
   document.getElementById('campoId').value = p.id;
   document.getElementById('campoNome').value = p.nome || '';
-  document.getElementById('campoCategoria').value = p.categoria || '';
   document.getElementById('campoUnidade').value = p.unidade || '';
   document.getElementById('campoDescricao').value = p.descricao || '';
   document.getElementById('campoPreco').value = p.preco ?? '';
   document.getElementById('campoPrecoAntigo').value = p.precoAntigo ?? '';
-  document.getElementById('campoImagemUrl').value = p.imagem || '';
+  document.getElementById('campoImagemUrl').value = p.imagem === IMAGEM_PADRAO_ADMIN ? '' : (p.imagem || '');
+  document.getElementById('campoCatalogo').checked = p.catalogo !== false;
   document.getElementById('campoNovo').checked = !!p.novo;
   document.getElementById('campoOferta').checked = !!p.oferta;
   document.getElementById('campoDestaque').checked = !!p.destaque;
@@ -278,19 +249,16 @@ function tratarUploadImagem(e) {
 
 function atualizarPreviewImagem(valor) {
   const preview = document.getElementById('previewImagem');
-  if (valor) {
-    let src = valor;
-    // Caminhos salvos como "images/..." são relativos à raiz da loja.
-    // Como o painel fica em /admin, o preview precisa voltar um nível.
-    if (!/^(data:|https?:\/\/|blob:|\/|\.\.\/)/i.test(src) && src.startsWith('images/')) {
-      src = '../' + src;
-    }
-    preview.src = src;
-    preview.style.display = 'block';
-  } else {
-    preview.removeAttribute('src');
-    preview.style.display = 'none';
+  let src = valor || IMAGEM_PADRAO_ADMIN;
+  if (!/^(data:|https?:\/\/|blob:|\/|\.\.\/)/i.test(src) && src.startsWith('images/')) {
+    src = '../' + src;
   }
+  preview.src = src;
+  preview.style.display = 'block';
+  preview.onerror = () => {
+    preview.onerror = null;
+    preview.src = '../images/em-breve.png';
+  };
 }
 
 function salvarProduto(e) {
@@ -298,24 +266,30 @@ function salvarProduto(e) {
 
   const precoTexto = document.getElementById('campoPreco').value;
   const precoAntigoTexto = document.getElementById('campoPrecoAntigo').value;
+  const imagemInformada = document.getElementById('campoImagemUrl').value.trim();
 
   const dados = {
     nome: document.getElementById('campoNome').value.trim(),
-    categoria: document.getElementById('campoCategoria').value.trim(),
     unidade: document.getElementById('campoUnidade').value.trim() || 'un.',
     descricao: document.getElementById('campoDescricao').value.trim(),
     preco: precoTexto === '' ? null : parseFloat(precoTexto),
     precoAntigo: precoAntigoTexto === '' ? null : parseFloat(precoAntigoTexto),
-    imagem: document.getElementById('campoImagemUrl').value.trim(),
+    imagem: imagemInformada || IMAGEM_PADRAO_ADMIN,
+    catalogo: document.getElementById('campoCatalogo').checked,
     novo: document.getElementById('campoNovo').checked,
     oferta: document.getElementById('campoOferta').checked,
     destaque: document.getElementById('campoDestaque').checked,
     disponivel: document.getElementById('campoDisponivel').checked,
   };
 
-  if (!dados.nome || !dados.categoria) {
-    alert('Preencha ao menos o nome e a categoria do produto.');
+  if (!dados.nome) {
+    alert('Preencha ao menos o nome do produto.');
     return;
+  }
+
+  if (!dados.catalogo && !dados.novo && !dados.oferta && !dados.destaque) {
+    const continuar = confirm('Você não selecionou nenhuma seção. O produto ficará salvo no painel, mas não aparecerá em nenhuma área da loja. Deseja continuar?');
+    if (!continuar) return;
   }
 
   if (ESTADO_ADMIN.edicaoId) {
@@ -329,9 +303,6 @@ function salvarProduto(e) {
   fecharModalProduto();
 }
 
-/* =================================================================
-   Modal: excluir produto
-================================================================= */
 function configurarModalExclusao() {
   const fundo = document.getElementById('modalExcluirFundo');
   document.getElementById('btnFecharModalExcluir').addEventListener('click', fecharModalExclusao);
@@ -358,13 +329,11 @@ function fecharModalExclusao() {
   fecharModal('modalExcluirFundo');
 }
 
-/* =================================================================
-   Helpers genéricos de modal
-================================================================= */
 function abrirModal(idFundo) {
   document.getElementById(idFundo).classList.add('aberto');
   document.body.style.overflow = 'hidden';
 }
+
 function fecharModal(idFundo) {
   document.getElementById(idFundo).classList.remove('aberto');
   document.body.style.overflow = '';

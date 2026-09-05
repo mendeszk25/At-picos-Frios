@@ -489,3 +489,23 @@ img{ max-width: 100%; display: block; }
   .admin-checks{ grid-template-columns: 1fr; }
   .admin-header{ flex-wrap: wrap; }
 }
+
+/* ====================================================================
+   AJUSTES — seções de exibição
+   ==================================================================== */
+.etiqueta-catalogo{ background: rgba(34,195,94,.18); color: #6ee79a; border: 1px solid rgba(34,195,94,.35); }
+.admin-secoes-titulo{ color: var(--osso) !important; font-size: .9rem; }
+.admin-checks-secoes{ margin-top: 2px; }
+.admin-checks-status{
+  grid-template-columns: 1fr;
+  background: rgba(34,195,94,.06);
+  border-color: rgba(34,195,94,.22);
+}
+.admin-imagem-controles small{
+  color: var(--osso-fraco);
+  font-size: .72rem;
+  line-height: 1.35;
+}
+@media (max-width: 760px){
+  .admin-tabela{ min-width: 760px; }
+}

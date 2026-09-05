@@ -24,21 +24,15 @@
     </div>
   </div>
   <div class="admin-header-acoes">
-    <a class="admin-link-loja" href="../index.html" target="_blank" rel="noopener">
-      Ver loja ↗
-    </a>
+    <a class="admin-link-loja" href="../index.html" target="_blank" rel="noopener">Ver loja ↗</a>
     <button class="admin-link-loja admin-sair" id="btnSairAdmin" type="button">Sair</button>
   </div>
 </header>
 
 <main class="admin-main">
-
   <section class="admin-toolbar">
     <div class="admin-toolbar-busca">
       <input type="search" id="buscaAdmin" placeholder="Buscar produto pelo nome...">
-      <select id="filtroCategoriaAdmin">
-        <option value="todos">Todas as categorias</option>
-      </select>
       <select id="filtroStatusAdmin">
         <option value="todos">Todos os status</option>
         <option value="ativo">Somente ativos</option>
@@ -56,16 +50,13 @@
         <tr>
           <th class="col-img"></th>
           <th>Produto</th>
-          <th>Categoria</th>
           <th>Preço</th>
-          <th>Etiquetas</th>
+          <th>Exibir em</th>
           <th>Status</th>
           <th class="col-acoes">Ações</th>
         </tr>
       </thead>
-      <tbody id="corpoTabelaAdmin">
-        <!-- Linhas geradas via admin.js -->
-      </tbody>
+      <tbody id="corpoTabelaAdmin"></tbody>
     </table>
     <p class="admin-vazio" id="tabelaVaziaAdmin" style="display:none;">Nenhum produto encontrado.</p>
   </section>
@@ -74,7 +65,6 @@
     Os dados ficam salvos no navegador (localStorage). Toda alteração aqui é refletida
     automaticamente na loja assim que a página dela for aberta ou atualizada.
   </p>
-
 </main>
 
 <!-- ===================== MODAL: Adicionar / Editar produto ===================== -->
@@ -95,24 +85,18 @@
         </label>
 
         <label class="admin-campo">
-          <span>Categoria *</span>
-          <input type="text" id="campoCategoria" list="listaCategorias" required placeholder="Ex.: Frios">
-          <datalist id="listaCategorias"></datalist>
-        </label>
-
-        <label class="admin-campo">
           <span>Unidade</span>
           <input type="text" id="campoUnidade" placeholder="Ex.: un., bandeja, kg">
-        </label>
-
-        <label class="admin-campo campo-largo">
-          <span>Descrição</span>
-          <textarea id="campoDescricao" rows="2" placeholder="Frase curta que aparece no card"></textarea>
         </label>
 
         <label class="admin-campo">
           <span>Preço (R$)</span>
           <input type="number" id="campoPreco" min="0" step="0.01" placeholder="Ex.: 23.00">
+        </label>
+
+        <label class="admin-campo campo-largo">
+          <span>Descrição</span>
+          <textarea id="campoDescricao" rows="2" placeholder="Frase curta que aparece no card"></textarea>
         </label>
 
         <label class="admin-campo">
@@ -123,22 +107,30 @@
         <div class="admin-campo campo-largo">
           <span>Imagem</span>
           <div class="admin-imagem-escolha">
-            <img id="previewImagem" class="admin-imagem-preview" src="" alt="Pré-visualização" style="display:none;">
+            <img id="previewImagem" class="admin-imagem-preview" src="../images/em-breve.png" alt="Pré-visualização">
             <div class="admin-imagem-controles">
-              <input type="text" id="campoImagemUrl" placeholder="Caminho ou URL da imagem (ex.: images/queijo_coalho.png)">
+              <input type="text" id="campoImagemUrl" placeholder="Deixe vazio para usar a imagem Em breve">
               <label class="btn-admin btn-admin-secundario admin-upload-btn">
                 Enviar arquivo…
                 <input type="file" id="campoImagemArquivo" accept="image/*" hidden>
               </label>
+              <small>Sem imagem própria, o site usa automaticamente “Em breve”.</small>
             </div>
           </div>
         </div>
 
-        <div class="admin-campo campo-largo admin-checks">
-          <label class="admin-check"><input type="checkbox" id="campoNovo"><span>Marcar como Novo</span></label>
-          <label class="admin-check"><input type="checkbox" id="campoOferta"><span>Marcar como Oferta</span></label>
-          <label class="admin-check"><input type="checkbox" id="campoDestaque"><span>Marcar como Destaque</span></label>
-          <label class="admin-check"><input type="checkbox" id="campoDisponivel" checked><span>Produto ativo (visível na loja)</span></label>
+        <div class="admin-campo campo-largo">
+          <span class="admin-secoes-titulo">Onde este produto deve aparecer?</span>
+          <div class="admin-checks admin-checks-secoes">
+            <label class="admin-check"><input type="checkbox" id="campoCatalogo"><span>Produtos disponíveis na loja</span></label>
+            <label class="admin-check"><input type="checkbox" id="campoDestaque"><span>Produtos em destaque</span></label>
+            <label class="admin-check"><input type="checkbox" id="campoNovo"><span>Chegou na Atípicos</span></label>
+            <label class="admin-check"><input type="checkbox" id="campoOferta"><span>Ofertas da semana</span></label>
+          </div>
+        </div>
+
+        <div class="admin-campo campo-largo admin-checks admin-checks-status">
+          <label class="admin-check"><input type="checkbox" id="campoDisponivel" checked><span>Produto ativo / disponível</span></label>
         </div>
       </div>
 

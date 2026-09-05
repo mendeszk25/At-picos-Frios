@@ -351,7 +351,7 @@ function configurarAnimacoesScroll() {
       // Ao terminar, devolve o elemento ao CSS original. Isso preserva
       // os transforms/hover que os cards já possuíam antes da animação.
       el.addEventListener('animationend', () => {
-        el.classList.remove('scroll-reveal', 'reveal-up', 'reveal-left', 'reveal-right', 'reveal-fade', 'is-visible');
+        el.classList.remove('scroll-reveal', 'reveal-up', 'reveal-left', 'reveal-right', 'reveal-scale', 'reveal-fade', 'is-visible');
         el.style.removeProperty('--reveal-delay');
         el.style.removeProperty('--reveal-duration');
       }, { once: true });
@@ -373,8 +373,8 @@ function configurarAnimacoesScroll() {
 
   const prepararCabecalhos = (raiz = document) => {
     raiz.querySelectorAll('.secao .faixa').forEach((el) => preparar(el, 'up', 0, 620));
-    raiz.querySelectorAll('.secao .secao-titulo').forEach((el) => preparar(el, 'up', 55, 720));
-    raiz.querySelectorAll('.secao .secao-sub').forEach((el) => preparar(el, 'up', 105, 720));
+    raiz.querySelectorAll('.secao .secao-titulo').forEach((el) => preparar(el, 'up', 60, 700));
+    raiz.querySelectorAll('.secao .secao-sub').forEach((el) => preparar(el, 'up', 120, 700));
   };
 
   const prepararGrupo = (seletorContainer, seletorItem, tipo = 'up', passo = 80, limite = 5) => {
@@ -389,16 +389,15 @@ function configurarAnimacoesScroll() {
     prepararCabecalhos();
 
     // Cards e grades: pequeno stagger para não entrarem todos juntos.
-    prepararGrupo('#trilhoOfertas', '.cartao-oferta', 'up', 80, 5);
-    prepararGrupo('#gradeCategorias', '.categoria', 'up', 70, 5);
-    prepararGrupo('#gradeProdutos', '.produto', 'up', 65, 5);
-    prepararGrupo('#novidadesGrid', '.novidade', 'up', 80, 4);
-    prepararGrupo('#gradeDestaques', '.destaque', 'up', 80, 4);
-    prepararGrupo('.grade-insta', '.insta-item', 'up', 65, 5);
+    prepararGrupo('#trilhoOfertas', '.cartao-oferta', 'up', 60, 5);
+    prepararGrupo('#gradeProdutos', '.produto', 'up', 60, 5);
+    prepararGrupo('#novidadesGrid', '.novidade', 'up', 60, 4);
+    prepararGrupo('#gradeDestaques', '.destaque', 'up', 60, 4);
+    prepararGrupo('.grade-insta', '.insta-item', 'up', 60, 5);
 
     // Blocos maiores recebem direções discretamente diferentes.
-    document.querySelectorAll('.sobre-img').forEach((el) => preparar(el, 'left', 0, 820));
-    document.querySelectorAll('.sobre-conteudo').forEach((el) => preparar(el, 'right', 90, 820));
+    document.querySelectorAll('.sobre-img').forEach((el) => preparar(el, 'scale', 0, 820));
+    document.querySelectorAll('.sobre-conteudo').forEach((el) => preparar(el, 'right', 80, 820));
     document.querySelectorAll('.local-mapa').forEach((el) => preparar(el, 'left', 0, 820));
     document.querySelectorAll('.local-cartao').forEach((el) => preparar(el, 'right', 90, 820));
     document.querySelectorAll('.insta-topo').forEach((el) => preparar(el, 'up', 0, 720));
