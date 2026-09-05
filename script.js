@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   configurarCarrossel();
   configurarAnoRodape();
   configurarAcessoAdmin();
+  configurarAnimacoesScroll();
 });
 
 /* ---------------------------------------------------------------
@@ -322,4 +323,114 @@ function configurarAcessoAdmin() {
     const urlLimpa = window.location.pathname + (resto ? `?${resto}` : '') + window.location.hash;
     window.history.replaceState({}, '', urlLimpa);
   }
+}
+
+
+/* ---------------------------------------------------------------
+   Animações de entrada ao rolar a página
+   - IntersectionObserver para animar somente quando o conteúdo entra
+     na viewport.
+   - MutationObserver para também animar cards recriados pelos filtros
+     e pelo painel administrativo.
+   - Sem dependências externas.
+--------------------------------------------------------------- */
+function configurarAnimacoesScroll() {
+  const reduzirMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduzirMovimento) return;
+
+  const jaPreparados = new WeakSet();
+
+  const observer = new IntersectionObserver((entradas) => {
+    entradas.forEach((entrada) => {
+      if (!entrada.isIntersecting) return;
+
+      const el = entrada.target;
+      el.classList.add('is-visible');
+      observer.unobserve(el);
+
+      // Ao terminar, devolve o elemento ao CSS original. Isso preserva
+      // os transforms/hover que os cards já possuíam antes da animação.
+      el.addEventListener('animationend', () => {
+        el.classList.remove('scroll-reveal', 'reveal-up', 'reveal-left', 'reveal-right', 'reveal-fade', 'is-visible');
+        el.style.removeProperty('--reveal-delay');
+        el.style.removeProperty('--reveal-duration');
+      }, { once: true });
+    });
+  }, {
+    threshold: 0.12,
+    rootMargin: '0px 0px -55px 0px',
+  });
+
+  const preparar = (el, tipo = 'up', delay = 0, duracao = 760) => {
+    if (!el || jaPreparados.has(el)) return;
+    jaPreparados.add(el);
+
+    el.classList.add('scroll-reveal', `reveal-${tipo}`);
+    el.style.setProperty('--reveal-delay', `${delay}ms`);
+    el.style.setProperty('--reveal-duration', `${duracao}ms`);
+    observer.observe(el);
+  };
+
+  const prepararCabecalhos = (raiz = document) => {
+    raiz.querySelectorAll('.secao .faixa').forEach((el) => preparar(el, 'up', 0, 620));
+    raiz.querySelectorAll('.secao .secao-titulo').forEach((el) => preparar(el, 'up', 55, 720));
+    raiz.querySelectorAll('.secao .secao-sub').forEach((el) => preparar(el, 'up', 105, 720));
+  };
+
+  const prepararGrupo = (seletorContainer, seletorItem, tipo = 'up', passo = 80, limite = 5) => {
+    document.querySelectorAll(seletorContainer).forEach((container) => {
+      container.querySelectorAll(seletorItem).forEach((el, indice) => {
+        preparar(el, tipo, Math.min(indice, limite) * passo, 760);
+      });
+    });
+  };
+
+  const prepararConteudo = () => {
+    prepararCabecalhos();
+
+    // Cards e grades: pequeno stagger para não entrarem todos juntos.
+    prepararGrupo('#trilhoOfertas', '.cartao-oferta', 'up', 80, 5);
+    prepararGrupo('#gradeCategorias', '.categoria', 'up', 70, 5);
+    prepararGrupo('#gradeProdutos', '.produto', 'up', 65, 5);
+    prepararGrupo('#novidadesGrid', '.novidade', 'up', 80, 4);
+    prepararGrupo('#gradeDestaques', '.destaque', 'up', 80, 4);
+    prepararGrupo('.grade-insta', '.insta-item', 'up', 65, 5);
+
+    // Blocos maiores recebem direções discretamente diferentes.
+    document.querySelectorAll('.sobre-img').forEach((el) => preparar(el, 'left', 0, 820));
+    document.querySelectorAll('.sobre-conteudo').forEach((el) => preparar(el, 'right', 90, 820));
+    document.querySelectorAll('.local-mapa').forEach((el) => preparar(el, 'left', 0, 820));
+    document.querySelectorAll('.local-cartao').forEach((el) => preparar(el, 'right', 90, 820));
+    document.querySelectorAll('.insta-topo').forEach((el) => preparar(el, 'up', 0, 720));
+    document.querySelectorAll('.cta-texto').forEach((el) => preparar(el, 'left', 0, 760));
+    document.querySelectorAll('.cta-acoes').forEach((el) => preparar(el, 'right', 100, 760));
+
+    // Rodapé: colunas em sequência e fechamento mais discreto.
+    document.querySelectorAll('.footer-grid > *').forEach((el, indice) => {
+      preparar(el, 'up', Math.min(indice, 4) * 80, 720);
+    });
+    document.querySelectorAll('.footer-baixo').forEach((el) => preparar(el, 'fade', 100, 700));
+  };
+
+  prepararConteudo();
+
+  // Produtos/ofertas são reconstruídos via innerHTML quando o usuário
+  // filtra ou quando o estoque é atualizado. Observa somente as áreas
+  // relevantes para preparar os novos nós automaticamente.
+  const alvosDinamicos = [
+    '#trilhoOfertas',
+    '#gradeProdutos',
+    '#novidadesGrid',
+    '#gradeDestaques',
+  ];
+
+  const mutationObserver = new MutationObserver(() => {
+    // Agrupa várias mutações do mesmo render em um único frame.
+    requestAnimationFrame(prepararConteudo);
+  });
+
+  alvosDinamicos.forEach((seletor) => {
+    const alvo = document.querySelector(seletor);
+    if (alvo) mutationObserver.observe(alvo, { childList: true, subtree: true });
+  });
 }

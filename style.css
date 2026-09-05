@@ -36,7 +36,7 @@
   --raio-peq:   8px;
   --container:  1180px;
   --sombra:     0 10px 30px rgba(0,0,0,.45);
-  --header-h:   64px;
+  --header-h:   78px;
 }
 
 /* ============================= RESET / BASE ============================= */
@@ -1066,4 +1066,251 @@ h1.hero h1,
   .grade-produtos { grid-template-columns: repeat(4, 1fr); }
   .container      { padding: 0 24px; }
   .btn-admin-header { display: inline-flex; }
+}
+
+/* ====================================================================
+   HERO 2026 — inspirado na referência enviada pelo cliente.
+   A arte foi recortada para remover a barra de pesquisa do topo e a
+   faixa de categorias da parte inferior, preservando somente o hero.
+   ==================================================================== */
+.header {
+  background: rgba(4, 9, 14, .96);
+  border-bottom-color: #28313a;
+}
+.header-inner {
+  height: 78px;
+  max-width: 1540px;
+}
+.marca { min-width: 210px; }
+.marca img {
+  width: 230px;
+  height: 70px;
+  object-fit: contain;
+  object-position: left center;
+  border-radius: 0;
+}
+.nav-desktop ul { gap: 28px; }
+.nav-desktop a {
+  color: #ececec;
+  font-size: 14px;
+  padding: 25px 2px 20px;
+  border-bottom-width: 4px;
+  border-radius: 0;
+}
+.nav-desktop a:hover,
+.nav-desktop a.ativo {
+  color: #ffd400;
+  border-color: #ffd400;
+}
+
+.hero.hero-referencia {
+  padding: 0;
+  background: #03070a;
+  overflow: hidden;
+}
+.hero-reference-frame {
+  position: relative;
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  background: #03070a;
+}
+.hero-reference-frame > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 690px;
+  object-fit: cover;
+  object-position: center top;
+}
+.hero-hotspot {
+  position: absolute;
+  z-index: 3;
+  display: block;
+  border-radius: 18px;
+}
+.hero-hotspot:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+.hero-hotspot-catalogo {
+  left: 3.35%;
+  top: 67.2%;
+  width: 16.6%;
+  height: 12.5%;
+}
+.hero-hotspot-pedido {
+  left: 20.35%;
+  top: 67.2%;
+  width: 15%;
+  height: 12.5%;
+}
+.hero-mobile-actions { display: none; }
+
+/* Mantém o acesso administrativo visível sem competir com a arte. */
+.btn-admin-header {
+  background: #ffd400;
+  border-color: #ffd400;
+  color: #090909;
+}
+
+@media (min-width: 980px) {
+  .nav-desktop { display: block; }
+  .menu-toggle { display: none; }
+  .btn-admin-header { display: inline-flex; }
+}
+
+@media (max-width: 1120px) {
+  .nav-desktop ul { gap: 15px; }
+  .nav-desktop a { font-size: 12.5px; }
+  .marca { min-width: 170px; }
+  .marca img { width: 185px; }
+  .btn-peq { padding: 8px 10px; font-size: 12px; }
+}
+
+@media (max-width: 979px) {
+  .header-inner { height: 68px; }
+  .marca { min-width: 0; }
+  .marca img { width: 165px; height: 58px; }
+  .header-acoes .btn-whats { display: none; }
+  .hero-reference-frame {
+    overflow: hidden;
+  }
+  .hero-reference-frame > img {
+    width: 145%;
+    max-width: none;
+    margin-left: -2%;
+    min-height: 420px;
+    object-fit: cover;
+    object-position: left top;
+  }
+  .hero-hotspot { display: none; }
+  .hero-mobile-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 14px;
+    padding-bottom: 18px;
+    background: #03070a;
+  }
+  .hero-mobile-actions .btn { flex: 1; min-height: 48px; }
+  .btn-hero-catalogo {
+    background: #ffd400;
+    color: #0b0b0b;
+    border-color: #ffd400;
+  }
+  .btn-hero-whats {
+    background: transparent;
+    color: #fff;
+    border-color: #09a63d;
+  }
+}
+
+@media (max-width: 560px) {
+  .marca img { width: 142px; }
+  .hero-reference-frame > img {
+    width: 190%;
+    margin-left: -4%;
+    min-height: 360px;
+  }
+  .hero-mobile-actions { flex-direction: column; }
+}
+
+/* ====================================================================
+   POLIMENTO VISUAL — transição do hero + entrada suave no scroll
+   ==================================================================== */
+
+/*
+ * Faz a arte do hero desaparecer gradualmente no mesmo preto usado pela
+ * próxima seção. O overlay fica dentro da imagem, portanto não cria uma
+ * faixa extra nem interfere nos hotspots dos botões.
+ */
+.hero-reference-frame::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: clamp(120px, 12vw, 190px);
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 10, 12, 0) 0%,
+    rgba(10, 10, 12, .08) 20%,
+    rgba(10, 10, 12, .30) 45%,
+    rgba(10, 10, 12, .72) 72%,
+    rgba(10, 10, 12, .96) 92%,
+    var(--preto) 100%
+  );
+}
+
+/* Evita qualquer hairline entre a imagem e a seção seguinte. */
+#ofertas {
+  position: relative;
+  z-index: 4;
+  margin-top: -1px;
+  background: var(--preto);
+}
+
+/*
+ * Classes adicionadas via IntersectionObserver. Elas só existem quando
+ * JavaScript está ativo, então o conteúdo continua acessível caso o JS
+ * não carregue.
+ */
+.scroll-reveal {
+  opacity: 0;
+  will-change: opacity, translate;
+}
+
+.scroll-reveal.is-visible {
+  animation-duration: var(--reveal-duration, 760ms);
+  animation-delay: var(--reveal-delay, 0ms);
+  animation-timing-function: cubic-bezier(.22, 1, .36, 1);
+  animation-fill-mode: forwards;
+}
+
+.scroll-reveal.reveal-up.is-visible    { animation-name: reveal-up; }
+.scroll-reveal.reveal-left.is-visible  { animation-name: reveal-left; }
+.scroll-reveal.reveal-right.is-visible { animation-name: reveal-right; }
+.scroll-reveal.reveal-fade.is-visible  { animation-name: reveal-fade; }
+
+@keyframes reveal-up {
+  from { opacity: 0; translate: 0 36px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+@keyframes reveal-left {
+  from { opacity: 0; translate: -34px 0; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+@keyframes reveal-right {
+  from { opacity: 0; translate: 34px 0; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+@keyframes reveal-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (max-width: 979px) {
+  .hero-reference-frame::after {
+    height: clamp(95px, 20vw, 145px);
+  }
+
+  /* Mantém a continuidade do preto depois do fade no mobile. */
+  .hero-mobile-actions {
+    background: var(--preto);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal,
+  .scroll-reveal.is-visible {
+    opacity: 1 !important;
+    translate: none !important;
+    animation: none !important;
+    will-change: auto;
+  }
 }

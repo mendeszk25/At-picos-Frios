@@ -13,23 +13,18 @@
 <!-- ============================= HEADER ============================= -->
 <header class="header">
   <div class="container header-inner">
-    <a href="#topo" class="marca">
-      <img src="images/logo.png" alt="Logo Atípicos Frios">
-      <span>ATÍP<em>ICOS</em> FRIOS</span>
+    <a href="#topo" class="marca" aria-label="Atípicos Frios - início">
+      <img src="images/logo-header-ref.png" alt="Atípicos Frios">
     </a>
 
     <nav class="nav-desktop" aria-label="Navegação principal">
       <ul>
+        <li><a class="ativo" href="#topo">Início</a></li>
+        <li><a href="#catalogo">Produtos</a></li>
         <li><a href="#ofertas">Ofertas</a></li>
         <li><a href="#categorias">Categorias</a></li>
-        <li><a href="#catalogo">Catálogo</a></li>
-        <li><a href="#novidades">Novidades</a></li>
-        <li><a href="#sobre">Sobre</a></li>
-        <li><a href="#instagram" class="nav-link-insta">
-          <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor"/></svg>
-          Instagram
-        </a></li>
-        <li><a href="#localizacao">Localização</a></li>
+        <li><a href="#sobre">Sobre nós</a></li>
+        <li><a href="#localizacao">Contato</a></li>
       </ul>
     </nav>
 
@@ -83,55 +78,18 @@
 <main id="topo">
 
   <!-- ============================= HERO ============================= -->
-  <section class="hero">
-    <div class="container hero-grid">
-      <div class="hero-texto-col">
-        <div class="hero-selo">
-          <img src="images/logo.png" alt="Atípicos Frios">
-        </div>
+  <section class="hero hero-referencia" aria-label="Ofertas e produtos Atípicos Frios">
+    <div class="hero-reference-frame">
+      <img src="images/hero-referencia.png" alt="Ofertas e produtos selecionados para sua mesa, com frios, laticínios, bebidas e mercearia">
 
-        <span class="hero-local">
-          <svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z" stroke="var(--dourado)" stroke-width="1.8"/><circle cx="12" cy="10" r="2.4" stroke="var(--dourado)" stroke-width="1.8"/></svg>
-          Loja física em Gravatá – PE
-        </span>
+      <!-- Áreas clicáveis posicionadas sobre os botões presentes na arte -->
+      <a class="hero-hotspot hero-hotspot-catalogo" href="#catalogo" aria-label="Ver catálogo"></a>
+      <a class="hero-hotspot hero-hotspot-pedido" href="#" data-link="whatsappPedido" aria-label="Fazer pedido pelo WhatsApp"></a>
+    </div>
 
-        <h1>
-          <span class="l1">SABOR QUE</span>
-          <span class="l2">UNE.</span>
-          <span class="l3">QUALIDADE.</span>
-        </h1>
-
-        <p class="hero-desc">
-          Frios, congelados, bebidas e churrasco com os melhores preços da
-          região. Separamos seu pedido rapidinho.
-        </p>
-
-        <div class="hero-acoes">
-          <a href="#" class="btn btn-whats" data-link="whatsappPedido">
-            <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M20 12a8 8 0 1 1-14.9-4L4 4l4.1 1A8 8 0 0 1 20 12Z" stroke="currentColor" stroke-width="1.8"/></svg>
-            Peça pelo WhatsApp
-          </a>
-          <a href="#" class="btn btn-vermelho" data-ifood id="botaoIfoodHero" style="display:none;">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9-4-9-9-9Z" stroke="currentColor" stroke-width="1.8"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-            Pedir pelo iFood
-          </a>
-          <a href="#ofertas" class="btn btn-contorno">Ver ofertas →</a>
-        </div>
-
-        <div class="hero-fatos">
-          <div class="hero-fato"><strong>100%</strong><span>Loja física</span></div>
-          <div class="hero-fato"><strong>Toda</strong><span>Gravatá‑PE</span></div>
-          <div class="hero-fato"><strong>Semanal</strong><span>Novas ofertas</span></div>
-        </div>
-      </div>
-
-      <div class="hero-media">
-        <img src="images/delivery.png" alt="Delivery Atípicos Frios: peça sem sair de casa">
-        <div class="hero-media-legenda">
-          Delivery rápido e seguro
-          <small>Peça pelo WhatsApp e receba em casa</small>
-        </div>
-      </div>
+    <div class="hero-mobile-actions container">
+      <a href="#catalogo" class="btn btn-hero-catalogo">Ver catálogo <span aria-hidden="true">→</span></a>
+      <a href="#" class="btn btn-hero-whats" data-link="whatsappPedido">Fazer pedido</a>
     </div>
   </section>
 
