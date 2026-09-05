@@ -1,36 +1,30 @@
-# 🧊 Atípicos Frios
+# Atípicos Frios
 
-Site oficial da **Atípicos Frios**, uma loja de produtos alimentícios localizada em **Gravatá–PE**.
+Site da **Atípicos Frios**, uma loja de produtos alimentícios localizada em **Gravatá–PE**.
 
-O projeto foi desenvolvido com foco em apresentar os produtos, ofertas e novidades da loja de forma moderna, organizada e responsiva, mantendo a identidade visual presente nas redes sociais da empresa.
+O projeto tem como objetivo apresentar os produtos, ofertas e novidades da loja de forma moderna, organizada e responsiva, mantendo a identidade visual utilizada pela empresa em suas redes sociais.
 
----
+## Sobre o projeto
 
-## 📸 Sobre o projeto
-
-A proposta do projeto é transformar a identidade visual promocional da Atípicos Frios em uma experiência digital mais organizada.
+A proposta é transformar a identidade visual promocional da Atípicos Frios em uma experiência digital mais organizada.
 
 O site funciona como um catálogo online, permitindo que os clientes:
 
-- 🛒 Visualizem os produtos disponíveis
-- 🔎 Pesquisem produtos
-- 🏷️ Naveguem por categorias
-- 🔥 Confiram ofertas da semana
-- 🆕 Descubram produtos novos
-- ⭐ Visualizem produtos em destaque
-- 📱 Acessem o Instagram da empresa
-- 💬 Entrem em contato pelo WhatsApp
-- 🛵 Realizem pedidos através do iFood
+- Visualizem os produtos disponíveis
+- Pesquisem produtos
+- Filtrem produtos por categoria
+- Confiram as ofertas da semana
+- Visualizem produtos recém-chegados
+- Encontrem produtos em destaque
+- Acessem o Instagram
+- Entrem em contato pelo WhatsApp
+- Realizem pedidos através do iFood
 
-A identidade visual utiliza como base as características presentes nas publicações da Atípicos Frios, com destaque para tons escuros, amarelo/dourado, vermelho, azul e elementos promocionais.
+## Funcionalidades
 
----
+### Catálogo de produtos
 
-## ✨ Funcionalidades
-
-### 🛍️ Catálogo de produtos
-
-Os produtos são organizados por categorias e exibidos através de cards contendo informações como:
+Os produtos são organizados por categorias e exibidos em cards contendo:
 
 - Nome
 - Imagem
@@ -40,29 +34,25 @@ Os produtos são organizados por categorias e exibidos através de cards contend
 - Categoria
 - Disponibilidade
 
-### 🔎 Busca e filtros
+### Busca e filtros
 
-O catálogo possui:
+O catálogo possui pesquisa por nome e filtros por categoria, permitindo encontrar produtos de forma rápida.
 
-- Pesquisa por nome
-- Filtro por categoria
-- Exibição dinâmica dos produtos
+### Ofertas da semana
 
-### 🔥 Ofertas da semana
+Produtos marcados como oferta são exibidos automaticamente em uma seção específica para destacar as promoções da loja.
 
-Produtos marcados como oferta são exibidos automaticamente em uma seção específica para facilitar a visualização das promoções.
+### Novidades
 
-### 🆕 Novidades
+Produtos marcados como novos aparecem automaticamente na seção "Chegou na Atípicos".
 
-Produtos marcados como novos aparecem automaticamente na seção **"Chegou na Atípicos"**.
+Essa funcionalidade permite destacar produtos que chegaram recentemente à loja.
 
-Isso permite destacar produtos recém-chegados à loja.
+### Produtos em destaque
 
-### ⭐ Produtos em destaque
+Produtos selecionados podem ser marcados como destaque e exibidos na página inicial.
 
-Produtos selecionados podem ser marcados como destaque e exibidos em uma seção própria na página inicial.
-
-### ⚙️ Painel administrativo
+### Painel administrativo
 
 O projeto possui uma área administrativa para gerenciamento dos produtos.
 
@@ -79,33 +69,29 @@ O projeto possui uma área administrativa para gerenciamento dos produtos.
 - Marcar produtos como destaque
 - Ativar ou desativar produtos
 
-Atualmente, os dados podem ser armazenados utilizando `localStorage`, deixando a estrutura preparada para uma futura integração com backend e banco de dados.
+Inicialmente, os dados podem ser armazenados utilizando `localStorage`, deixando a estrutura preparada para uma futura integração com backend e banco de dados.
 
-### 📱 Responsividade
+## Responsividade
 
-O site foi desenvolvido para funcionar em diferentes dispositivos:
+O site foi desenvolvido para funcionar em diferentes tamanhos de tela:
 
-- 📱 Smartphones
-- 📲 Tablets
-- 💻 Notebooks
-- 🖥️ Desktops
+- Smartphones
+- Tablets
+- Notebooks
+- Desktops
 
----
+A experiência mobile é uma das prioridades do projeto, considerando que muitos usuários podem acessar o site através do Instagram ou WhatsApp.
 
-## 🛠️ Tecnologias
-
-O projeto utiliza tecnologias web fundamentais:
+## Tecnologias
 
 - HTML5
 - CSS3
 - JavaScript
 - LocalStorage
 
-Não são utilizados frameworks pesados, mantendo o projeto simples, leve e fácil de modificar.
+O projeto utiliza JavaScript puro, sem frameworks desnecessários, mantendo a aplicação leve e fácil de modificar.
 
----
-
-## 📁 Estrutura do projeto
+## Estrutura do projeto
 
 ```text
 Atipicos-Frios/
