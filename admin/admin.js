@@ -1,0 +1,354 @@
+/* ====================================================================
+   ATÍPICOS FRIOS — admin.js
+   Toda a lógica do painel fala apenas com ProdutosStore
+   (definido em produtos-store.js). Nenhuma chamada direta a
+   localStorage acontece aqui — assim, quando o site ganhar uma
+   API/banco de dados, só ProdutosStore precisa mudar.
+   ==================================================================== */
+
+const ESTADO_ADMIN = {
+  busca: '',
+  categoria: 'todos',
+  status: 'todos',
+  edicaoId: null,   // id do produto em edição (null = criando um novo)
+  exclusaoId: null, // id do produto marcado para exclusão
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderizarTabela();
+  preencherFiltroCategorias();
+
+  configurarBusca();
+  configurarFiltros();
+  configurarModalProduto();
+  configurarModalExclusao();
+
+  // Se os dados mudarem por outra aba (ex.: dois admins abertos),
+  // a tabela e os filtros se atualizam sozinhos.
+  ProdutosStore.aoAtualizar(() => {
+    renderizarTabela();
+    preencherFiltroCategorias();
+  });
+});
+
+/* =================================================================
+   Utilidades
+================================================================= */
+function slug(texto) {
+  return (texto || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function formatarPrecoAdmin(produto) {
+  if (produto.preco === null || produto.preco === undefined || produto.preco === '') {
+    return '<span class="linha-preco-vazio">Consulte preço</span>';
+  }
+  const atual = `R$${Number(produto.preco).toFixed(2).replace('.', ',')}`;
+  let html = `<span class="linha-preco">${atual}</span>`;
+  if (produto.precoAntigo) {
+    html += `<span class="linha-preco-antigo">R$${Number(produto.precoAntigo).toFixed(2).replace('.', ',')}</span>`;
+  }
+  return html;
+}
+
+function mostrarToast(mensagem) {
+  const toast = document.getElementById('toastAdmin');
+  toast.textContent = mensagem;
+  toast.classList.add('mostrar');
+  clearTimeout(mostrarToast._t);
+  mostrarToast._t = setTimeout(() => toast.classList.remove('mostrar'), 2200);
+}
+
+/* =================================================================
+   Tabela principal
+================================================================= */
+function produtosFiltrados() {
+  return ProdutosStore.listar().filter((p) => {
+    const buscaOk = slug(p.nome).includes(slug(ESTADO_ADMIN.busca));
+    const categoriaOk = ESTADO_ADMIN.categoria === 'todos' || p.categoria === ESTADO_ADMIN.categoria;
+    const statusOk = ESTADO_ADMIN.status === 'todos'
+      || (ESTADO_ADMIN.status === 'ativo' && p.disponivel)
+      || (ESTADO_ADMIN.status === 'inativo' && !p.disponivel);
+    return buscaOk && categoriaOk && statusOk;
+  });
+}
+
+function renderizarTabela() {
+  const corpo = document.getElementById('corpoTabelaAdmin');
+  const vazio = document.getElementById('tabelaVaziaAdmin');
+  const resumo = document.getElementById('resumoAdmin');
+  const lista = produtosFiltrados();
+  const total = ProdutosStore.listar().length;
+
+  resumo.textContent = `${lista.length} de ${total} produto${total === 1 ? '' : 's'} exibido${lista.length === 1 ? '' : 's'}`;
+
+  if (!lista.length) {
+    corpo.innerHTML = '';
+    vazio.style.display = 'block';
+    return;
+  }
+  vazio.style.display = 'none';
+
+  corpo.innerHTML = lista.map((p) => `
+    <tr class="${p.disponivel ? '' : 'inativo'}" data-id="${p.id}">
+      <td class="col-img">
+        <div class="linha-thumb">
+          ${p.imagem ? `<img src="${escaparAtributo(p.imagem)}" alt="">` : ''}
+        </div>
+      </td>
+      <td>
+        <div class="linha-produto-nome">${escaparHtml(p.nome)}</div>
+        <div class="linha-produto-desc">${escaparHtml(p.descricao || '')}</div>
+      </td>
+      <td>${escaparHtml(p.categoria || '—')}</td>
+      <td>${formatarPrecoAdmin(p)}</td>
+      <td>
+        <div class="tags-etiquetas">
+          ${p.novo ? '<span class="etiqueta etiqueta-novo">Novo</span>' : ''}
+          ${p.oferta ? '<span class="etiqueta etiqueta-oferta">Oferta</span>' : ''}
+          ${p.destaque ? '<span class="etiqueta etiqueta-destaque">Destaque</span>' : ''}
+        </div>
+      </td>
+      <td>
+        <label class="interruptor" title="Ativar/Desativar produto">
+          <input type="checkbox" class="chk-status" data-id="${p.id}" ${p.disponivel ? 'checked' : ''}>
+          <span class="interruptor-trilho"></span>
+        </label>
+        <span class="status-legenda">${p.disponivel ? 'Ativo' : 'Inativo'}</span>
+      </td>
+      <td class="col-acoes">
+        <div class="acoes-linha">
+          <button class="btn-icone btn-editar" data-id="${p.id}" title="Editar produto">✎</button>
+          <button class="btn-icone perigo btn-excluir" data-id="${p.id}" data-nome="${escaparAtributo(p.nome)}" title="Excluir produto">🗑</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  corpo.querySelectorAll('.chk-status').forEach((chk) => {
+    chk.addEventListener('change', () => {
+      ProdutosStore.atualizar(chk.dataset.id, { disponivel: chk.checked });
+      mostrarToast(chk.checked ? 'Produto ativado.' : 'Produto desativado.');
+    });
+  });
+
+  corpo.querySelectorAll('.btn-editar').forEach((btn) => {
+    btn.addEventListener('click', () => abrirModalEdicao(btn.dataset.id));
+  });
+
+  corpo.querySelectorAll('.btn-excluir').forEach((btn) => {
+    btn.addEventListener('click', () => abrirModalExclusao(btn.dataset.id, btn.dataset.nome));
+  });
+}
+
+function escaparHtml(texto) {
+  const div = document.createElement('div');
+  div.textContent = texto ?? '';
+  return div.innerHTML;
+}
+function escaparAtributo(texto) {
+  return (texto ?? '').replace(/"/g, '&quot;');
+}
+
+/* =================================================================
+   Busca e filtros
+================================================================= */
+function configurarBusca() {
+  document.getElementById('buscaAdmin').addEventListener('input', (e) => {
+    ESTADO_ADMIN.busca = e.target.value;
+    renderizarTabela();
+  });
+}
+
+function preencherFiltroCategorias() {
+  const select = document.getElementById('filtroCategoriaAdmin');
+  const valorAtual = select.value || 'todos';
+  const categorias = ProdutosStore.listarCategorias();
+
+  select.innerHTML = '<option value="todos">Todas as categorias</option>'
+    + categorias.map((c) => `<option value="${escaparAtributo(c)}">${escaparHtml(c)}</option>`).join('');
+
+  select.value = categorias.includes(valorAtual) ? valorAtual : 'todos';
+
+  // Também atualiza as sugestões do campo "categoria" do formulário
+  const datalist = document.getElementById('listaCategorias');
+  if (datalist) {
+    datalist.innerHTML = categorias.map((c) => `<option value="${escaparAtributo(c)}">`).join('');
+  }
+}
+
+function configurarFiltros() {
+  document.getElementById('filtroCategoriaAdmin').addEventListener('change', (e) => {
+    ESTADO_ADMIN.categoria = e.target.value;
+    renderizarTabela();
+  });
+  document.getElementById('filtroStatusAdmin').addEventListener('change', (e) => {
+    ESTADO_ADMIN.status = e.target.value;
+    renderizarTabela();
+  });
+}
+
+/* =================================================================
+   Modal: novo / editar produto
+================================================================= */
+function configurarModalProduto() {
+  const fundo = document.getElementById('modalFundo');
+  const form = document.getElementById('formProduto');
+
+  document.getElementById('btnNovoProduto').addEventListener('click', abrirModalCriacao);
+  document.getElementById('btnFecharModal').addEventListener('click', fecharModalProduto);
+  document.getElementById('btnCancelarModal').addEventListener('click', fecharModalProduto);
+  fundo.addEventListener('click', (e) => { if (e.target === fundo) fecharModalProduto(); });
+
+  document.getElementById('campoImagemArquivo').addEventListener('change', tratarUploadImagem);
+  document.getElementById('campoImagemUrl').addEventListener('input', (e) => {
+    atualizarPreviewImagem(e.target.value);
+  });
+
+  form.addEventListener('submit', salvarProduto);
+}
+
+function abrirModalCriacao() {
+  ESTADO_ADMIN.edicaoId = null;
+  document.getElementById('modalTitulo').textContent = 'Novo produto';
+  document.getElementById('formProduto').reset();
+  document.getElementById('campoId').value = '';
+  document.getElementById('campoDisponivel').checked = true;
+  atualizarPreviewImagem('');
+  abrirModal('modalFundo');
+}
+
+function abrirModalEdicao(id) {
+  const p = ProdutosStore.buscarPorId(id);
+  if (!p) return;
+
+  ESTADO_ADMIN.edicaoId = id;
+  document.getElementById('modalTitulo').textContent = 'Editar produto';
+  document.getElementById('campoId').value = p.id;
+  document.getElementById('campoNome').value = p.nome || '';
+  document.getElementById('campoCategoria').value = p.categoria || '';
+  document.getElementById('campoUnidade').value = p.unidade || '';
+  document.getElementById('campoDescricao').value = p.descricao || '';
+  document.getElementById('campoPreco').value = p.preco ?? '';
+  document.getElementById('campoPrecoAntigo').value = p.precoAntigo ?? '';
+  document.getElementById('campoImagemUrl').value = p.imagem || '';
+  document.getElementById('campoNovo').checked = !!p.novo;
+  document.getElementById('campoOferta').checked = !!p.oferta;
+  document.getElementById('campoDestaque').checked = !!p.destaque;
+  document.getElementById('campoDisponivel').checked = !!p.disponivel;
+  atualizarPreviewImagem(p.imagem || '');
+
+  abrirModal('modalFundo');
+}
+
+function fecharModalProduto() {
+  fecharModal('modalFundo');
+}
+
+function tratarUploadImagem(e) {
+  const arquivo = e.target.files[0];
+  if (!arquivo) return;
+
+  if (arquivo.size > 1.5 * 1024 * 1024) {
+    alert('Essa imagem é muito grande para salvar no navegador. Prefira uma imagem de até ~1,5MB, ou use o campo de URL/caminho.');
+    e.target.value = '';
+    return;
+  }
+
+  const leitor = new FileReader();
+  leitor.onload = () => {
+    const dataUrl = leitor.result;
+    document.getElementById('campoImagemUrl').value = dataUrl;
+    atualizarPreviewImagem(dataUrl);
+  };
+  leitor.readAsDataURL(arquivo);
+}
+
+function atualizarPreviewImagem(valor) {
+  const preview = document.getElementById('previewImagem');
+  if (valor) {
+    preview.src = valor;
+    preview.style.display = 'block';
+  } else {
+    preview.removeAttribute('src');
+    preview.style.display = 'none';
+  }
+}
+
+function salvarProduto(e) {
+  e.preventDefault();
+
+  const precoTexto = document.getElementById('campoPreco').value;
+  const precoAntigoTexto = document.getElementById('campoPrecoAntigo').value;
+
+  const dados = {
+    nome: document.getElementById('campoNome').value.trim(),
+    categoria: document.getElementById('campoCategoria').value.trim(),
+    unidade: document.getElementById('campoUnidade').value.trim() || 'un.',
+    descricao: document.getElementById('campoDescricao').value.trim(),
+    preco: precoTexto === '' ? null : parseFloat(precoTexto),
+    precoAntigo: precoAntigoTexto === '' ? null : parseFloat(precoAntigoTexto),
+    imagem: document.getElementById('campoImagemUrl').value.trim(),
+    novo: document.getElementById('campoNovo').checked,
+    oferta: document.getElementById('campoOferta').checked,
+    destaque: document.getElementById('campoDestaque').checked,
+    disponivel: document.getElementById('campoDisponivel').checked,
+  };
+
+  if (!dados.nome || !dados.categoria) {
+    alert('Preencha ao menos o nome e a categoria do produto.');
+    return;
+  }
+
+  if (ESTADO_ADMIN.edicaoId) {
+    ProdutosStore.atualizar(ESTADO_ADMIN.edicaoId, dados);
+    mostrarToast('Produto atualizado com sucesso.');
+  } else {
+    ProdutosStore.criar(dados);
+    mostrarToast('Produto adicionado com sucesso.');
+  }
+
+  fecharModalProduto();
+}
+
+/* =================================================================
+   Modal: excluir produto
+================================================================= */
+function configurarModalExclusao() {
+  const fundo = document.getElementById('modalExcluirFundo');
+  document.getElementById('btnFecharModalExcluir').addEventListener('click', fecharModalExclusao);
+  document.getElementById('btnCancelarExcluir').addEventListener('click', fecharModalExclusao);
+  fundo.addEventListener('click', (e) => { if (e.target === fundo) fecharModalExclusao(); });
+
+  document.getElementById('btnConfirmarExcluir').addEventListener('click', () => {
+    if (ESTADO_ADMIN.exclusaoId != null) {
+      ProdutosStore.remover(ESTADO_ADMIN.exclusaoId);
+      mostrarToast('Produto excluído.');
+    }
+    fecharModalExclusao();
+  });
+}
+
+function abrirModalExclusao(id, nome) {
+  ESTADO_ADMIN.exclusaoId = id;
+  document.getElementById('nomeProdutoExcluir').textContent = nome;
+  abrirModal('modalExcluirFundo');
+}
+
+function fecharModalExclusao() {
+  ESTADO_ADMIN.exclusaoId = null;
+  fecharModal('modalExcluirFundo');
+}
+
+/* =================================================================
+   Helpers genéricos de modal
+================================================================= */
+function abrirModal(idFundo) {
+  document.getElementById(idFundo).classList.add('aberto');
+  document.body.style.overflow = 'hidden';
+}
+function fecharModal(idFundo) {
+  document.getElementById(idFundo).classList.remove('aberto');
+  document.body.style.overflow = '';
+}
