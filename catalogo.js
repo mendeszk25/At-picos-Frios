@@ -529,3 +529,13 @@ function finalizarPedidoWhatsapp() {
 
   window.open(whatsappUrl, "_blank");
 }
+
+// O catálogo inicial continua legível se o serviço estiver indisponível.
+window.addEventListener('produtos:erro', () => {
+  const aviso = document.getElementById('statusCatalogo');
+  if (aviso) { aviso.hidden = false; aviso.textContent = 'Não foi possível atualizar o catálogo. Confirme a disponibilidade pelo WhatsApp.'; }
+});
+window.addEventListener('produtos:atualizados', () => {
+  const aviso = document.getElementById('statusCatalogo');
+  if (aviso) aviso.hidden = true;
+});

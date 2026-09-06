@@ -1,0 +1,9 @@
+{
+  "name": "atipicos-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build.cjs",
+    "test": "node --test tests/security.test.mjs"
+  }
+}

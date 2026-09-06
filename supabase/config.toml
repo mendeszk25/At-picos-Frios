@@ -1,0 +1,4 @@
+project_id = "atipicos"
+
+[functions.admin-api]
+verify_jwt = false

@@ -124,6 +124,7 @@
       <h2 class="secao-titulo">Produtos disponíveis na loja</h2>
       <p class="secao-sub">Preços podem variar. Confirme no WhatsApp antes de fazer seu pedido.</p>
 
+      <p id="statusCatalogo" role="status" hidden></p>
       <div class="busca-linha">
         <div class="busca-wrapper">
           <svg class="busca-icon" viewBox="0 0 24 24" fill="none" width="16" height="16"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -393,13 +394,13 @@
     <h2 id="adminLoginTitulo">Adicionar produtos</h2>
     <p>Digite a senha administrativa para abrir o painel do catálogo.</p>
 
-    <form id="formAdminAcesso" novalidate>
+    <form id="formAdminAcesso">
       <label class="admin-login-label" for="senhaAdmin">Senha</label>
       <div class="admin-login-input-wrap">
-        <input type="password" id="senhaAdmin" autocomplete="current-password" placeholder="Digite a senha" required>
+        <input type="password" id="senhaAdmin" maxlength="128" autocomplete="current-password" placeholder="Digite a senha" required>
         <button class="admin-login-ver" id="alternarSenhaAdmin" type="button" aria-label="Mostrar senha">Mostrar</button>
       </div>
-      <p class="admin-login-erro" id="erroAdminAcesso" role="alert" aria-live="polite"></p>
+      <p class="admin-login-status" id="erroAdminAcesso" role="status" aria-live="polite"></p>
       <div class="admin-login-acoes">
         <button class="btn btn-primario" type="submit">Entrar no painel</button>
         <button class="btn btn-contorno" id="cancelarAdminLogin" type="button">Cancelar</button>
@@ -465,6 +466,8 @@
 
 <script src="admin/config.js"></script>
 <script src="produtos.js"></script>
+<script src="supabase-config.js"></script>
+<script src="backend-client.js"></script>
 <script src="admin/produtos-store.js"></script>
 <script src="catalogo.js"></script>
 <script src="script.js"></script>

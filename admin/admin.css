@@ -509,3 +509,7 @@ img{ max-width: 100%; display: block; }
 @media (max-width: 760px){
   .admin-tabela{ min-width: 760px; }
 }
+
+[hidden] { display: none !important; }
+#statusAcessoAdmin { padding: 24px; }
+button:disabled { opacity: .55; cursor: wait; }

@@ -8,12 +8,12 @@
   <title>Painel Administrativo — Atípicos Frios</title>
   <link rel="icon" href="../images/logo.png">
   <link rel="stylesheet" href="admin.css">
-  <script>
-    window.location.replace('../index.html?admin=1');
-  </script>
+
 </head>
 
 <body>
+  <p id="statusAcessoAdmin" role="status">Verificando acesso…</p>
+  <div id="painelAdmin" hidden>
 
   <header class="admin-header">
     <div class="admin-header-marca">
@@ -39,6 +39,7 @@
           <option value="inativo">Somente inativos</option>
         </select>
       </div>
+      <button class="btn-admin btn-admin-secundario" id="btnImportarProdutos">Importar catálogo anterior</button>
       <button class="btn-admin btn-admin-primario" id="btnNovoProduto">+ Novo produto</button>
     </section>
 
@@ -62,8 +63,7 @@
     </section>
 
     <p class="admin-rodape-nota">
-      Os dados ficam salvos no navegador (localStorage). Toda alteração aqui é refletida
-      automaticamente na loja assim que a página dela for aberta ou atualizada.
+      As alterações confirmadas são publicadas na loja. Para trazer os produtos anteriores, use “Importar catálogo anterior” no navegador onde você os cadastrou; produtos com o mesmo ID não serão sobrescritos.
     </p>
   </main>
 
@@ -81,12 +81,12 @@
         <div class="admin-form-grid">
           <label class="admin-campo campo-largo">
             <span>Nome do produto *</span>
-            <input type="text" id="campoNome" required placeholder="Ex.: Queijo Coalho Geason Diniz">
+            <input type="text" id="campoNome" maxlength="160" required placeholder="Ex.: Queijo Coalho Geason Diniz">
           </label>
 
           <label class="admin-campo">
             <span>Unidade</span>
-            <input type="text" id="campoUnidade" placeholder="Ex.: un., bandeja, kg">
+            <input type="text" id="campoUnidade" maxlength="40" placeholder="Ex.: un., bandeja, kg">
           </label>
 
           <label class="admin-campo">
@@ -96,7 +96,7 @@
 
           <label class="admin-campo campo-largo">
             <span>Descrição</span>
-            <textarea id="campoDescricao" rows="2" placeholder="Frase curta que aparece no card"></textarea>
+            <textarea id="campoDescricao" maxlength="1000" rows="2" placeholder="Frase curta que aparece no card"></textarea>
           </label>
 
           <label class="admin-campo">
@@ -113,7 +113,7 @@
                 <input type="text" id="campoImagemUrl" placeholder="Deixe vazio para usar a imagem Em breve">
                 <label class="btn-admin btn-admin-secundario admin-upload-btn">
                   Enviar arquivo…
-                  <input type="file" id="campoImagemArquivo" accept="image/*" hidden>
+                  <input type="file" id="campoImagemArquivo" accept="image/jpeg,image/png,image/webp" hidden>
                 </label>
                 <small>Sem imagem própria, o site usa automaticamente “Em breve”.</small>
               </div>
@@ -163,9 +163,13 @@
     </div>
   </div>
 
-  <div class="admin-toast" id="toastAdmin"></div>
+  <div class="admin-toast" id="toastAdmin" role="status" aria-live="polite"></div>
+  </div>
+  <noscript>Ative o JavaScript para entrar no painel.</noscript>
 
   <script src="../produtos.js"></script>
+  <script src="../supabase-config.js"></script>
+  <script src="../backend-client.js"></script>
   <script src="produtos-store.js"></script>
   <script src="admin.js"></script>
 </body>

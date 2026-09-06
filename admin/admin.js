@@ -12,24 +12,98 @@ const ESTADO_ADMIN = {
 
 const IMAGEM_PADRAO_ADMIN = 'images/em-breve.png';
 
-document.addEventListener('DOMContentLoaded', () => {
-  renderizarTabela();
-  configurarBusca();
-  configurarFiltros();
-  configurarModalProduto();
-  configurarModalExclusao();
-  configurarSaidaAdmin();
+document.addEventListener('DOMContentLoaded', async () => {
+  const status = document.getElementById('statusAcessoAdmin');
+  const painel = document.getElementById('painelAdmin');
+  let bloqueado = false;
+  let saindo = false;
+  let timerSessao = null;
 
-  ProdutosStore.aoAtualizar(() => renderizarTabela());
+  const bloquear = async () => {
+    if (bloqueado || saindo) return;
+    bloqueado = true;
+    painel.hidden = true;
+    clearTimeout(timerSessao);
+    try { await AtipicosBackend.sair(); } catch (_) { /* sessão local será limpa mesmo assim */ }
+    window.location.replace('../index.html?admin=1&motivo=sessao');
+  };
+
+  const agendarExpiracao = (expiraEm) => {
+    clearTimeout(timerSessao);
+    timerSessao = setTimeout(bloquear, Math.max(0, expiraEm - Date.now() + 50));
+  };
+
+  const conferirSessao = async () => {
+    if (bloqueado || saindo) return;
+    try {
+      const sessao = await AtipicosBackend.exigirAdmin();
+      agendarExpiracao(sessao.expiraEm);
+    } catch (e) {
+      if (['auth/session-expired', 'auth/not-authorized'].includes(e.code)) await bloquear();
+    }
+  };
+
+  try {
+    const sessao = await AtipicosBackend.exigirAdmin();
+    agendarExpiracao(sessao.expiraEm);
+    window.addEventListener('focus', conferirSessao);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') conferirSessao();
+    });
+    setInterval(conferirSessao, 60000);
+
+    // A sessão já foi confirmada pelo servidor. Libera a interface agora,
+    // sem segurar a abertura do painel esperando a leitura pública do catálogo.
+    // ProdutosStore já iniciou essa leitura em paralelo ao carregar o script.
+    status.hidden = true;
+    painel.hidden = false;
+    painel.setAttribute('aria-busy', 'true');
+    renderizarTabela();
+    configurarBusca();
+    configurarFiltros();
+    configurarModalProduto();
+    configurarModalExclusao();
+
+    ProdutosStore.carregamento
+      .then(() => painel.removeAttribute('aria-busy'))
+      .catch((falha) => {
+        painel.removeAttribute('aria-busy');
+        mostrarToast(AtipicosBackend.mensagem(falha));
+      });
+
+    document.getElementById('btnSairAdmin').addEventListener('click', async () => {
+      try {
+        saindo = true;
+        await AtipicosBackend.sair();
+        window.location.replace('../index.html');
+      } catch (e) {
+        saindo = false;
+        mostrarToast(AtipicosBackend.mensagem(e));
+      }
+    });
+
+    document.getElementById('btnImportarProdutos').addEventListener('click', async (e) => {
+      if (!confirm('Importar os produtos deste navegador (ou do catálogo inicial), sem sobrescrever IDs existentes?')) return;
+      e.target.disabled = true;
+      try { await ProdutosStore.importarLegado(); mostrarToast('Catálogo importado.'); }
+      catch (falha) { mostrarToast(AtipicosBackend.mensagem(falha)); }
+      finally { e.target.disabled = false; }
+    });
+
+    ProdutosStore.aoAtualizar(() => renderizarTabela());
+    window.addEventListener('produtos:erro', (e) => mostrarToast(AtipicosBackend.mensagem(e.detail)));
+  } catch (e) {
+    if (['auth/session-expired', 'auth/not-authorized'].includes(e.code)) {
+      await bloquear();
+    } else {
+      status.textContent = AtipicosBackend.mensagem(e) + ' Recarregue a página para tentar novamente.';
+      const voltar = document.createElement('a');
+      voltar.href = '../index.html?admin=1';
+      voltar.textContent = ' Voltar ao login';
+      status.append(voltar);
+    }
+  }
 });
-
-function configurarSaidaAdmin() {
-  const btn = document.getElementById('btnSairAdmin');
-  if (!btn) return;
-  btn.addEventListener('click', () => {
-    window.location.href = '../index.html';
-  });
-}
 
 function slug(texto) {
   return (texto || '')
@@ -113,7 +187,7 @@ function renderizarTabela() {
   vazio.style.display = 'none';
 
   corpo.innerHTML = lista.map((p) => `
-    <tr class="${p.disponivel ? '' : 'inativo'}" data-id="${p.id}">
+    <tr class="${p.disponivel ? '' : 'inativo'}" data-id="${escaparAtributo(p.id)}">
       <td class="col-img">
         <div class="linha-thumb">
           <img src="${escaparAtributo(caminhoImagemAdmin(p.imagem))}" alt="" data-admin-img>
@@ -127,15 +201,15 @@ function renderizarTabela() {
       <td><div class="tags-etiquetas">${tagsSecoes(p) || '<span class="linha-preco-vazio">Nenhuma seção</span>'}</div></td>
       <td>
         <label class="interruptor" title="Ativar/Desativar produto">
-          <input type="checkbox" class="chk-status" data-id="${p.id}" ${p.disponivel ? 'checked' : ''}>
+          <input type="checkbox" class="chk-status" data-id="${escaparAtributo(p.id)}" ${p.disponivel ? 'checked' : ''}>
           <span class="interruptor-trilho"></span>
         </label>
         <span class="status-legenda">${p.disponivel ? 'Ativo' : 'Inativo'}</span>
       </td>
       <td class="col-acoes">
         <div class="acoes-linha">
-          <button class="btn-icone btn-editar" data-id="${p.id}" title="Editar produto">✎</button>
-          <button class="btn-icone perigo btn-excluir" data-id="${p.id}" data-nome="${escaparAtributo(p.nome)}" title="Excluir produto">🗑</button>
+          <button class="btn-icone btn-editar" data-id="${escaparAtributo(p.id)}" title="Editar produto">✎</button>
+          <button class="btn-icone perigo btn-excluir" data-id="${escaparAtributo(p.id)}" data-nome="${escaparAtributo(p.nome)}" title="Excluir produto">🗑</button>
         </div>
       </td>
     </tr>
@@ -146,9 +220,13 @@ function renderizarTabela() {
   });
 
   corpo.querySelectorAll('.chk-status').forEach((chk) => {
-    chk.addEventListener('change', () => {
-      ProdutosStore.atualizar(chk.dataset.id, { disponivel: chk.checked });
-      mostrarToast(chk.checked ? 'Produto ativado.' : 'Produto desativado.');
+    chk.addEventListener('change', async () => {
+      chk.disabled = true;
+      try {
+        await ProdutosStore.atualizar(chk.dataset.id, { disponivel: chk.checked });
+        mostrarToast(chk.checked ? 'Produto ativado.' : 'Produto desativado.');
+      } catch (e) { chk.checked = !chk.checked; mostrarToast(AtipicosBackend.mensagem(e)); }
+      finally { chk.disabled = false; }
     });
   });
 
@@ -185,11 +263,12 @@ function configurarModalProduto() {
   fundo.addEventListener('click', (e) => { if (e.target === fundo) fecharModalProduto(); });
 
   document.getElementById('campoImagemArquivo').addEventListener('change', tratarUploadImagem);
-  document.getElementById('campoImagemUrl').addEventListener('input', (e) => atualizarPreviewImagem(e.target.value));
+  document.getElementById('campoImagemUrl').addEventListener('input', (e) => { limparImagemPendente(); atualizarPreviewImagem(e.target.value); });
   form.addEventListener('submit', salvarProduto);
 }
 
 function abrirModalCriacao() {
+  limparImagemPendente();
   ESTADO_ADMIN.edicaoId = null;
   document.getElementById('modalTitulo').textContent = 'Novo produto';
   document.getElementById('formProduto').reset();
@@ -201,6 +280,7 @@ function abrirModalCriacao() {
 }
 
 function abrirModalEdicao(id) {
+  limparImagemPendente();
   const p = ProdutosStore.buscarPorId(id);
   if (!p) return;
 
@@ -224,26 +304,30 @@ function abrirModalEdicao(id) {
 }
 
 function fecharModalProduto() {
+  if (document.querySelector('#formProduto [type="submit"]').disabled) return;
+  limparImagemPendente();
   fecharModal('modalFundo');
 }
 
+let imagemPendente = null;
+let previewTemporario = null;
+function limparImagemPendente() {
+  imagemPendente = null;
+  if (previewTemporario) URL.revokeObjectURL(previewTemporario);
+  previewTemporario = null;
+  document.getElementById('campoImagemArquivo').value = '';
+}
 function tratarUploadImagem(e) {
   const arquivo = e.target.files[0];
   if (!arquivo) return;
-
-  if (arquivo.size > 1.5 * 1024 * 1024) {
-    alert('Essa imagem é muito grande para salvar no navegador. Prefira uma imagem de até ~1,5MB, ou use o campo de URL/caminho.');
-    e.target.value = '';
+  limparImagemPendente();
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(arquivo.type) || arquivo.size > 1572864) {
+    mostrarToast('Escolha JPEG, PNG ou WebP de até 1,5 MB.');
     return;
   }
-
-  const leitor = new FileReader();
-  leitor.onload = () => {
-    const dataUrl = leitor.result;
-    document.getElementById('campoImagemUrl').value = dataUrl;
-    atualizarPreviewImagem(dataUrl);
-  };
-  leitor.readAsDataURL(arquivo);
+  imagemPendente = arquivo;
+  previewTemporario = URL.createObjectURL(arquivo);
+  atualizarPreviewImagem(previewTemporario);
 }
 
 function atualizarPreviewImagem(valor) {
@@ -260,7 +344,7 @@ function atualizarPreviewImagem(valor) {
   };
 }
 
-function salvarProduto(e) {
+async function salvarProduto(e) {
   e.preventDefault();
 
   const precoTexto = document.getElementById('campoPreco').value;
@@ -291,15 +375,28 @@ function salvarProduto(e) {
     if (!continuar) return;
   }
 
-  if (ESTADO_ADMIN.edicaoId) {
-    ProdutosStore.atualizar(ESTADO_ADMIN.edicaoId, dados);
-    mostrarToast('Produto atualizado com sucesso.');
-  } else {
-    ProdutosStore.criar(dados);
-    mostrarToast('Produto adicionado com sucesso.');
-  }
+  const submit = e.target.querySelector('[type="submit"]');
+  if (submit.disabled) return;
+  submit.disabled = true;
+  const id = ESTADO_ADMIN.edicaoId;
+  // Mantém os campos estáveis enquanto upload e gravação são confirmados.
+  const controles = [...document.querySelectorAll('#modalFundo input, #modalFundo button, #modalFundo textarea')];
+  controles.forEach((el) => { el.disabled = true; });
+  try {
+    if (imagemPendente) {
+      dados.imagem = await AtipicosBackend.enviarImagem(imagemPendente);
+      document.getElementById('campoImagemUrl').value = dados.imagem;
+      limparImagemPendente();
+    }
+    if (id) await ProdutosStore.atualizar(id, dados);
+    else await ProdutosStore.criar(dados);
+    mostrarToast(id ? 'Produto atualizado com sucesso.' : 'Produto adicionado com sucesso.');
+    limparImagemPendente();
+    fecharModal('modalFundo');
+  } catch (falha) {
+    mostrarToast(AtipicosBackend.mensagem(falha));
+  } finally { controles.forEach((el) => { el.disabled = false; }); }
 
-  fecharModalProduto();
 }
 
 function configurarModalExclusao() {
@@ -308,12 +405,15 @@ function configurarModalExclusao() {
   document.getElementById('btnCancelarExcluir').addEventListener('click', fecharModalExclusao);
   fundo.addEventListener('click', (e) => { if (e.target === fundo) fecharModalExclusao(); });
 
-  document.getElementById('btnConfirmarExcluir').addEventListener('click', () => {
-    if (ESTADO_ADMIN.exclusaoId != null) {
-      ProdutosStore.remover(ESTADO_ADMIN.exclusaoId);
+  document.getElementById('btnConfirmarExcluir').addEventListener('click', async (e) => {
+    if (ESTADO_ADMIN.exclusaoId == null) return;
+    e.target.disabled = true;
+    try {
+      await ProdutosStore.remover(ESTADO_ADMIN.exclusaoId);
       mostrarToast('Produto excluído.');
-    }
-    fecharModalExclusao();
+      fecharModalExclusao();
+    } catch (falha) { mostrarToast(AtipicosBackend.mensagem(falha)); }
+    finally { e.target.disabled = false; }
   });
 }
 

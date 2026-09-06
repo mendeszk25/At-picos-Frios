@@ -67,3 +67,12 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+public/
+test-results/
+
+# Supabase local/private secrets
+supabase/.env
+supabase/functions/.env
+supabase/.temp/
+*.secrets.env

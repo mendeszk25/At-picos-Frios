@@ -389,22 +389,39 @@ function configurarAnoRodape() {
 
 /* ---------------------------------------------------------------
    Acesso ao painel administrativo
-   Observação: como o projeto é 100% estático, esta senha é apenas
-   uma barreira simples de interface. Para segurança real, use
-   autenticação no backend.
+   Senha validada pela Edge Function; sessão e permissões verificadas no servidor.
 --------------------------------------------------------------- */
 function configurarAcessoAdmin() {
   const modal = document.getElementById('modalAdminAcesso');
   const form = document.getElementById('formAdminAcesso');
   const input = document.getElementById('senhaAdmin');
-  const erro = document.getElementById('erroAdminAcesso');
+  const status = document.getElementById('erroAdminAcesso');
   const fecharBtn = document.getElementById('fecharAdminLogin');
   const cancelarBtn = document.getElementById('cancelarAdminLogin');
   const verBtn = document.getElementById('alternarSenhaAdmin');
   const gatilhos = document.querySelectorAll('.admin-access-trigger');
-  if (!modal || !form || !input) return;
+  if (!modal || !form || !input || !status) return;
 
+  const classesStatus = [
+    'admin-login-status--loading',
+    'admin-login-status--success',
+    'admin-login-status--error',
+    'admin-login-status--warning',
+  ];
 
+  const definirStatus = (tipo = '', mensagem = '') => {
+    status.classList.remove(...classesStatus);
+    if (tipo) status.classList.add(`admin-login-status--${tipo}`);
+    status.textContent = mensagem;
+  };
+
+  const tipoFalha = (falha) => {
+    const code = falha?.code || '';
+    if (['service/unavailable', 'service/not-configured', 'app/not-configured', 'app/backend-not-configured', 'network/offline'].includes(code)) {
+      return 'warning';
+    }
+    return 'error';
+  };
 
   const abrir = () => {
     // Fecha o menu mobile antes de mostrar a senha.
@@ -416,7 +433,7 @@ function configurarAcessoAdmin() {
     input.value = '';
     input.type = 'password';
     if (verBtn) verBtn.textContent = 'Mostrar';
-    erro.textContent = '';
+    definirStatus();
     modal.classList.add('aberto');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
@@ -427,7 +444,7 @@ function configurarAcessoAdmin() {
     modal.classList.remove('aberto');
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
-    erro.textContent = '';
+    definirStatus();
     input.value = '';
   };
 
@@ -452,11 +469,48 @@ function configurarAcessoAdmin() {
     if (e.key === 'Escape' && modal.classList.contains('aberto')) fechar();
   });
 
-  form.addEventListener('submit', (e) => {
+  let enviando = false;
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (enviando) return;
 
-    erro.textContent = 'Sistema de acesso sendo configurado.';
-    input.select();
+    // Mantém a validação HTML nativa: nenhum estado "Entrando..." aparece
+    // enquanto o formulário estiver inválido/vazio.
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    enviando = true;
+    const submit = form.querySelector('[type="submit"]');
+    const textoOriginalSubmit = submit.textContent;
+    submit.disabled = true;
+    submit.textContent = 'Entrando…';
+    definirStatus('loading', 'Entrando…');
+
+    let navegando = false;
+    try {
+      // Uma única requisição de login. O backend só devolve sucesso depois de
+      // validar PBKDF2, rate limit e criar a sessão opaca no servidor.
+      await AtipicosBackend.entrar(input.value);
+      input.value = '';
+      definirStatus('success', 'Acesso confirmado.');
+      submit.textContent = 'Abrindo painel…';
+      navegando = true;
+      window.location.assign('admin/index.html');
+    } catch (falha) {
+      definirStatus(tipoFalha(falha), AtipicosBackend.mensagem(falha));
+      input.value = '';
+      input.focus();
+    } finally {
+      // Em caso de sucesso, não reverte o estado enquanto a navegação já está
+      // em andamento. Em caso de erro, libera uma nova tentativa imediatamente.
+      if (!navegando) {
+        enviando = false;
+        submit.disabled = false;
+        submit.textContent = textoOriginalSubmit;
+      }
+    }
   });
 
   // Quem entra pelo link do rodapé ou tenta abrir /admin sem sessão
@@ -464,13 +518,14 @@ function configurarAcessoAdmin() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('admin') === '1') {
     abrir();
+    if (params.get('motivo') === 'sessao') definirStatus('error', 'Sua sessão expirou ou o acesso foi removido. Entre novamente.');
+    params.delete('motivo');
     params.delete('admin');
     const resto = params.toString();
     const urlLimpa = window.location.pathname + (resto ? `?${resto}` : '') + window.location.hash;
     window.history.replaceState({}, '', urlLimpa);
   }
 }
-
 
 /* ---------------------------------------------------------------
    Animações de entrada ao rolar a página

@@ -330,12 +330,40 @@ h1, h2, h3 { font-family: var(--fonte-cartaz); font-weight: 400; letter-spacing:
   font-weight: 800;
   cursor: pointer;
 }
-.admin-login-erro {
+.admin-login-status {
   min-height: 20px;
   margin: 7px 0 4px;
-  color: #ff6d69;
+  color: var(--osso-fraco);
   font-size: 12px;
   font-weight: 700;
+}
+.admin-login-status--loading,
+.admin-login-status--success {
+  color: var(--verde-wa);
+}
+.admin-login-status--error {
+  color: #ff6d69;
+}
+.admin-login-status--warning {
+  color: #f0ac1e;
+}
+.admin-login-status--loading::before {
+  content: "";
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 6px;
+  vertical-align: -1px;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: admin-login-spin .65s linear infinite;
+}
+@keyframes admin-login-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-login-status--loading::before { animation: none; }
 }
 .admin-login-acoes {
   display: flex;
@@ -1736,3 +1764,4 @@ h1.hero h1,
   .carrinho-painel { animation: none; }
   :is(.produto, .cartao-oferta, .novidade, .destaque):active { scale: 1; }
 }
+

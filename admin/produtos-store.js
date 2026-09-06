@@ -1,153 +1,118 @@
-/* ====================================================================
-   ATÍPICOS FRIOS — produtos-store.js
-   Camada única de acesso aos produtos (localStorage hoje; API no futuro).
-   ==================================================================== */
-
-const ProdutosStore = (function () {
-  const CHAVE = 'atipicosfrios_produtos_v1';
-  const CHAVE_SEQ = 'atipicosfrios_produtos_seq_v1';
-  const IMAGEM_PADRAO = 'images/em-breve.png';
-
-  // Imagens antigas do protótipo que devem ser substituídas pelo placeholder.
-  const IMAGENS_ANTIGAS = new Set([
-    'images/queijo_coalho.png', 'images/kit_churrasco.png', 'images/frios_bandeja.png',
-    'images/morangos.png', 'images/file_peito.png', 'images/oferta_dia.png',
-    'images/molho_italac.png', 'images/biscoito_marilan.png', 'images/natural_gurt.png',
-    'images/acai.png'
-  ]);
-
-  let cache = [];
+/* Catálogo compartilhado no Supabase. localStorage é somente fonte de migração. */
+const ProdutosStore = (() => {
+  const api = window.AtipicosBackend;
   const ouvintes = new Set();
+  const padrao = 'images/em-breve.png';
+  let cache = typeof PRODUTOS === 'undefined' ? [] : structuredClone(PRODUTOS);
+  let pronto = false;
+  let atualizando = false;
 
-  function clonar(obj) {
-    return JSON.parse(JSON.stringify(obj));
+  function publicar() {
+    ouvintes.forEach((fn) => fn());
+    window.dispatchEvent(new CustomEvent('produtos:atualizados'));
   }
 
-  function normalizarProduto(p = {}) {
-    let imagem = p.imagem || IMAGEM_PADRAO;
-    if (IMAGENS_ANTIGAS.has(imagem)) imagem = IMAGEM_PADRAO;
-
-    // Retorna apenas os campos atualmente suportados, removendo de vez
-    // propriedades antigas que não fazem mais parte do cadastro.
-    return {
-      id: p.id ?? null,
-      nome: p.nome || '',
-      descricao: p.descricao || '',
-      preco: p.preco === '' || p.preco === undefined ? null : p.preco,
-      precoAntigo: p.precoAntigo === '' || p.precoAntigo === undefined ? null : p.precoAntigo,
-      unidade: p.unidade || 'un.',
-      imagem,
-      // Produtos antigos não possuíam "catalogo"; nesse caso mantemos visíveis.
+  function normalizar(p) {
+    const dados = {
+      nome: String(p.nome || '').trim(),
+      descricao: String(p.descricao || '').trim(),
+      unidade: String(p.unidade || 'un.').trim(),
+      imagem: p.imagem || padrao,
+      preco: p.preco === '' || p.preco == null ? null : Number(p.preco),
+      precoAntigo: p.precoAntigo === '' || p.precoAntigo == null ? null : Number(p.precoAntigo),
       catalogo: p.catalogo !== false,
       novo: !!p.novo,
       oferta: !!p.oferta,
       destaque: !!p.destaque,
       disponivel: p.disponivel !== false,
     };
-  }
-
-  function normalizarLista(lista) {
-    return (Array.isArray(lista) ? lista : []).map(normalizarProduto);
-  }
-
-  function lerBruto() {
-    try {
-      const salvo = localStorage.getItem(CHAVE);
-      if (salvo) return normalizarLista(JSON.parse(salvo));
-    } catch (e) {
-      console.error('ProdutosStore: erro ao ler localStorage', e);
+    if (!dados.nome || dados.nome.length > 160 || dados.descricao.length > 1000 || !dados.unidade || dados.unidade.length > 40 ||
+        [dados.preco, dados.precoAntigo].some((valor) => valor !== null && (!Number.isFinite(valor) || valor < 0 || valor > 1000000))) {
+      throw api.erro('product/invalid-data');
     }
-    return normalizarLista(typeof PRODUTOS !== 'undefined' ? clonar(PRODUTOS) : []);
-  }
-
-  function salvarBruto(lista) {
-    try {
-      localStorage.setItem(CHAVE, JSON.stringify(lista));
-    } catch (e) {
-      console.error('ProdutosStore: erro ao salvar localStorage', e);
-      alert('Não foi possível salvar. O armazenamento do navegador pode estar cheio (imagens muito grandes).');
+    if (typeof dados.imagem !== 'string' || dados.imagem.length > 2048 ||
+        !/^(https:\/\/[^ <>]+|images\/[a-zA-Z0-9_./-]+)$/.test(dados.imagem)) {
+      throw api.erro('product/invalid-image');
     }
+    return dados;
   }
 
-  function proximoId() {
-    let seq = parseInt(localStorage.getItem(CHAVE_SEQ) || '0', 10);
-    const maiorAtual = cache.reduce((max, p) => Math.max(max, Number(p.id) || 0), 0);
-    seq = Math.max(seq, maiorAtual) + 1;
-    localStorage.setItem(CHAVE_SEQ, String(seq));
-    return seq;
-  }
-
-  function publicar() {
-    window.PRODUTOS = cache;
-    ouvintes.forEach((fn) => {
-      try { fn(cache); } catch (e) { console.error(e); }
-    });
-    window.dispatchEvent(new CustomEvent('produtos:atualizados', { detail: cache }));
-  }
-
-  function init() {
-    cache = lerBruto();
-    // Persiste a migração: remove campos antigos e troca as imagens antigas.
-    salvarBruto(cache);
-    publicar();
-  }
-
-  window.addEventListener('storage', (evento) => {
-    if (evento.key === CHAVE) {
-      cache = lerBruto();
+  async function recarregar() {
+    if (atualizando) return;
+    atualizando = true;
+    try {
+      const remotos = await api.listarProdutosPublicos();
+      cache = remotos;
+      cache.sort((a, b) => String(a.id).localeCompare(String(b.id), 'pt-BR', { numeric: true }));
+      pronto = true;
       publicar();
+    } finally {
+      atualizando = false;
     }
+  }
+
+  const carregamento = recarregar();
+  carregamento.catch((e) => {
+    pronto = false;
+    window.dispatchEvent(new CustomEvent('produtos:erro', { detail: e }));
   });
 
-  const api = {
-    listar() {
-      return cache;
-    },
+  // Mantém a loja aberta refletindo mudanças administrativas sem exigir reload.
+  // Falhas silenciosas aqui não derrubam o catálogo embutido/fonte já carregada.
+  setInterval(() => recarregar().catch(() => {}), 45000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') recarregar().catch(() => {});
+  });
 
-    buscarPorId(id) {
-      return cache.find((p) => String(p.id) === String(id)) || null;
-    },
+  async function gravar(acao) {
+    if (!pronto) throw api.erro('product/not-ready');
+    if (!navigator.onLine) throw api.erro('network/offline');
+    await api.exigirAdmin();
+    const resultado = await acao();
+    await recarregar();
+    return resultado;
+  }
 
+  return {
+    listar: () => structuredClone(cache),
+    buscarPorId: (id) => structuredClone(cache.find((p) => String(p.id) === String(id)) || null),
+    aoAtualizar(fn) { ouvintes.add(fn); return () => ouvintes.delete(fn); },
+    carregamento,
+    imagemPadrao: padrao,
+    recarregar,
     criar(dados) {
-      const produto = normalizarProduto(Object.assign({ id: proximoId() }, dados));
-      cache = [...cache, produto];
-      salvarBruto(cache);
-      publicar();
-      return produto;
+      const produto = normalizar(dados);
+      return gravar(() => api.criarProduto(produto));
     },
-
     atualizar(id, mudancas) {
-      let atualizado = null;
-      cache = cache.map((p) => {
-        if (String(p.id) !== String(id)) return p;
-        atualizado = normalizarProduto(Object.assign({}, p, mudancas, { id: p.id }));
-        return atualizado;
-      });
-      salvarBruto(cache);
-      publicar();
-      return atualizado;
+      const atual = cache.find((p) => String(p.id) === String(id));
+      if (!atual) return Promise.reject(api.erro('product/not-found'));
+      const produto = normalizar({ ...atual, ...mudancas });
+      return gravar(() => api.atualizarProduto(String(id), produto));
     },
-
     remover(id) {
-      cache = cache.filter((p) => String(p.id) !== String(id));
-      salvarBruto(cache);
-      publicar();
+      return gravar(() => api.removerProduto(String(id)));
     },
-
-    restaurarPadrao() {
-      cache = normalizarLista(typeof PRODUTOS !== 'undefined' ? clonar(PRODUTOS) : []);
-      salvarBruto(cache);
-      publicar();
+    async importarLegado() {
+      let lista;
+      const salvo = localStorage.getItem('atipicosfrios_produtos_v1');
+      try {
+        lista = salvo ? JSON.parse(salvo) : (typeof PRODUTOS === 'undefined' ? [] : PRODUTOS);
+      } catch (_) {
+        throw api.erro('product/invalid-data');
+      }
+      if (!Array.isArray(lista) || !lista.length) throw api.erro('product/empty-import');
+      if (lista.length > 400) throw api.erro('product/invalid-data');
+      const produtos = [];
+      for (const p of lista) {
+        const dados = { ...p };
+        if (/^data:image\/(png|jpeg|webp);base64,/.test(dados.imagem || '')) {
+          const blob = await (await fetch(dados.imagem)).blob();
+          dados.imagem = await api.enviarImagem(blob);
+        }
+        produtos.push({ id: String(p.id), dados: normalizar(dados) });
+      }
+      return gravar(() => api.importarProdutos(produtos));
     },
-
-    aoAtualizar(fn) {
-      ouvintes.add(fn);
-      return () => ouvintes.delete(fn);
-    },
-
-    imagemPadrao: IMAGEM_PADRAO,
   };
-
-  init();
-  return api;
 })();
