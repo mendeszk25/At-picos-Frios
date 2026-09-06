@@ -1683,3 +1683,56 @@ h1.hero h1,
   .produto-rodape { align-items: flex-start; }
   .btn-adicionar-pedido { white-space: normal; }
 }
+
+/* Mobile: movimentos curtos, sem alterar o espaço dos componentes. */
+@media (max-width: 979px) {
+  .nav-desktop { display: none; }
+  .menu-toggle { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+  .nav-mobile {
+    display: block !important;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-12px);
+    pointer-events: none;
+    transition: opacity 220ms ease, transform 260ms ease, visibility 0s 260ms;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .nav-mobile.aberto {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    transition-delay: 0s;
+  }
+  .menu-linha { transform-origin: 12px 12px; transition: transform 220ms ease, opacity 160ms ease; }
+  [aria-expanded="true"] .menu-linha-topo { transform: translateY(5px) rotate(45deg); transform-origin: 12px 7px; }
+  [aria-expanded="true"] .menu-linha-meio { opacity: 0; }
+  [aria-expanded="true"] .menu-linha-baixo { transform: translateY(-5px) rotate(-45deg); transform-origin: 12px 17px; }
+  .menu-mobile-aberto :is(.whats-flutuante, .carrinho-flutuante) { visibility: hidden; pointer-events: none; }
+  .hero-reference-frame { animation-duration: 480ms; }
+  .whats-flutuante { animation: none; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); }
+  .carrinho-flutuante { bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+  .scroll-reveal { will-change: auto; }
+  .scroll-reveal.is-visible { animation-duration: 420ms; }
+  .scroll-reveal:is(.reveal-left, .reveal-right, .reveal-scale).is-visible { animation-name: reveal-up; }
+  :is(.btn, .menu-toggle, .nav-mobile a, .btn-adicionar-pedido, .filtro, .carrinho-fechar, .controle-quantidade button) {
+    transition: transform 140ms ease, opacity 140ms ease;
+    touch-action: manipulation;
+  }
+  :is(.btn, .menu-toggle, .nav-mobile a, .btn-adicionar-pedido, .filtro, .carrinho-fechar, .controle-quantidade button):active {
+    transform: scale(.97);
+    opacity: .85;
+  }
+  :is(.produto, .cartao-oferta, .novidade, .destaque) { transition: scale 160ms ease; }
+  :is(.produto, .cartao-oferta, .novidade, .destaque):active { scale: .985; }
+  .local-grid > *, .sobre-grid > *, .footer-grid > * { min-width: 0; }
+  .local-cartao, .footer-grid { overflow-wrap: anywhere; }
+  .footer-desenvolvedor-link { white-space: normal; }
+  .carrinho-rodape { padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-delay: 0s !important; }
+  .carrinho-painel { animation: none; }
+  :is(.produto, .cartao-oferta, .novidade, .destaque):active { scale: 1; }
+}

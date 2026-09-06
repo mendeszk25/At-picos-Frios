@@ -176,37 +176,56 @@ function configurarMenuMobile() {
   const menu = document.getElementById('menuMobile');
   if (!botao || !menu) return;
 
-  const fechar = () => {
+  const mobile = window.matchMedia('(max-width: 979px)');
+  let overflowAnterior = '';
+  const fechar = (devolverFoco = false) => {
+    if (!menu.classList.contains('aberto')) return;
     menu.classList.remove('aberto');
+    menu.setAttribute('aria-hidden', 'true');
+    menu.inert = true;
     botao.setAttribute('aria-expanded', 'false');
-    document.body.style.overflow = '';
+    botao.setAttribute('aria-label', 'Abrir menu');
+    document.body.classList.remove('menu-mobile-aberto');
+    document.body.style.overflow = overflowAnterior;
+    if (devolverFoco) botao.focus();
   };
-
   const abrir = () => {
+    if (!mobile.matches) return;
+    overflowAnterior = document.body.style.overflow;
+    menu.inert = false;
+    menu.setAttribute('aria-hidden', 'false');
     menu.classList.add('aberto');
     botao.setAttribute('aria-expanded', 'true');
+    botao.setAttribute('aria-label', 'Fechar menu');
+    document.body.classList.add('menu-mobile-aberto');
     document.body.style.overflow = 'hidden';
   };
-
+  menu.inert = true;
   botao.addEventListener('click', () => {
-    const estaAberto = menu.classList.contains('aberto');
-    estaAberto ? fechar() : abrir();
+    menu.classList.contains('aberto') ? fechar(true) : abrir();
   });
-
-  // Fecha ao clicar num link
-  menu.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', fechar));
-
-  // Fecha ao pressionar Escape
+  menu.addEventListener('click', (e) => {
+    if (e.target.closest('a, .admin-access-trigger')) fechar();
+  }, true);
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') fechar();
-  });
-
-  // Fecha ao clicar fora do menu (overlay)
-  document.addEventListener('click', (e) => {
-    if (menu.classList.contains('aberto') && !menu.contains(e.target) && e.target !== botao && !botao.contains(e.target)) {
-      fechar();
+    if (!menu.classList.contains('aberto')) return;
+    if (e.key === 'Escape') fechar(true);
+    if (e.key === 'Tab') {
+      const itens = [botao, ...menu.querySelectorAll('a[href], button')]
+        .filter((el) => el.getClientRects().length);
+      const primeiro = itens[0];
+      const ultimo = itens[itens.length - 1];
+      if (e.shiftKey && document.activeElement === primeiro) {
+        e.preventDefault(); ultimo.focus();
+      } else if (!e.shiftKey && document.activeElement === ultimo) {
+        e.preventDefault(); primeiro.focus();
+      }
     }
   });
+  document.addEventListener('click', (e) => {
+    if (!menu.contains(e.target) && !botao.contains(e.target)) fechar();
+  });
+  mobile.addEventListener('change', () => { if (!mobile.matches) fechar(); });
 }
 
 /* ---------------------------------------------------------------
@@ -355,8 +374,8 @@ function configurarCarrossel() {
     return card ? card.offsetWidth + 14 : 230;
   };
 
-  setaEsq.addEventListener('click', () => trilho.scrollBy({ left: -largaoCard(), behavior: 'smooth' }));
-  setaDir.addEventListener('click', () => trilho.scrollBy({ left: largaoCard(), behavior: 'smooth' }));
+  setaEsq.addEventListener('click', () => trilho.scrollBy({ left: -largaoCard(), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }));
+  setaDir.addEventListener('click', () => trilho.scrollBy({ left: largaoCard(), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }));
 }
 
 /* ---------------------------------------------------------------
@@ -463,7 +482,7 @@ function configurarAcessoAdmin() {
 --------------------------------------------------------------- */
 function configurarAnimacoesScroll() {
   const reduzirMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduzirMovimento) return;
+  if (reduzirMovimento || !('IntersectionObserver' in window)) return;
 
   const jaPreparados = new WeakSet();
 
@@ -491,6 +510,11 @@ function configurarAnimacoesScroll() {
   const preparar = (el, tipo = 'up', delay = 0, duracao = 760) => {
     if (!el || jaPreparados.has(el)) return;
     jaPreparados.add(el);
+    if (window.matchMedia('(max-width: 979px)').matches) {
+      tipo = tipo === 'fade' ? 'fade' : 'up';
+      delay = Math.min(delay, 120);
+      duracao = 420;
+    }
 
     el.classList.add('scroll-reveal', `reveal-${tipo}`);
     el.style.setProperty('--reveal-delay', `${delay}ms`);
@@ -550,9 +574,25 @@ function configurarAnimacoesScroll() {
     '#gradeDestaques',
   ];
 
+  let frame = null;
   const mutationObserver = new MutationObserver(() => {
-    // Agrupa várias mutações do mesmo render em um único frame.
-    requestAnimationFrame(prepararConteudo);
+    if (frame !== null) return;
+    frame = requestAnimationFrame(() => {
+      frame = null;
+      prepararConteudo();
+    });
+  });
+
+  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (e) => {
+    if (!e.matches) return;
+    observer.disconnect();
+    mutationObserver.disconnect();
+    if (frame !== null) cancelAnimationFrame(frame);
+    document.querySelectorAll('.scroll-reveal').forEach((el) => {
+      el.classList.remove('scroll-reveal', 'is-visible');
+      el.style.removeProperty('--reveal-delay');
+      el.style.removeProperty('--reveal-duration');
+    });
   });
 
   alvosDinamicos.forEach((seletor) => {
