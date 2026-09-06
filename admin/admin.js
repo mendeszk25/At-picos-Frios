@@ -27,7 +27,6 @@ function configurarSaidaAdmin() {
   const btn = document.getElementById('btnSairAdmin');
   if (!btn) return;
   btn.addEventListener('click', () => {
-    sessionStorage.removeItem('atipicos_admin_autorizado');
     window.location.href = '../index.html';
   });
 }

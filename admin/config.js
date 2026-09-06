@@ -16,7 +16,7 @@ const CONFIG = {
   instagram: "https://www.instagram.com/atipicosfrios/",
   endereco: "",           // Ex.: "Rua Example, 123 – Gravatá, PE"
   horario: "",            // Ex.: "Seg–Sex: 07h–19h | Sáb: 07h–17h"
-  adminSenha: "atipicos123" // Senha simples do painel (troque antes de publicar)
+
 };
 
 /* ====================================================================
@@ -58,11 +58,11 @@ const BUSINESS_CONFIG = {
   // Horário de funcionamento
   horarios: {
     segunda: "07:00 – 19:00",
-    terca:   "07:00 – 19:00",
-    quarta:  "07:00 – 19:00",
-    quinta:  "07:00 – 19:00",
-    sexta:   "07:00 – 19:00",
-    sabado:  "07:00 – 17:00",
+    terca: "07:00 – 19:00",
+    quarta: "07:00 – 19:00",
+    quinta: "07:00 – 19:00",
+    sexta: "07:00 – 19:00",
+    sabado: "07:00 – 17:00",
     domingo: "",
   },
 

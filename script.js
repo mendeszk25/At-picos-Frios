@@ -385,9 +385,7 @@ function configurarAcessoAdmin() {
   const gatilhos = document.querySelectorAll('.admin-access-trigger');
   if (!modal || !form || !input) return;
 
-  const senhaConfigurada = (typeof CONFIG !== 'undefined' && CONFIG.adminSenha)
-    ? String(CONFIG.adminSenha)
-    : 'atipicos123';
+
 
   const abrir = () => {
     // Fecha o menu mobile antes de mostrar a senha.
@@ -437,12 +435,8 @@ function configurarAcessoAdmin() {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    if (input.value === senhaConfigurada) {
-      sessionStorage.setItem('atipicos_admin_autorizado', '1');
-      window.location.href = 'admin/index.html';
-      return;
-    }
-    erro.textContent = 'Senha incorreta. Tente novamente.';
+
+    erro.textContent = 'Sistema de acesso sendo configurado.';
     input.select();
   });
 

@@ -1,168 +1,173 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
-<title>Painel Administrativo — Atípicos Frios</title>
-<link rel="icon" href="../images/logo.png">
-<link rel="stylesheet" href="admin.css">
-<script>
-  if (sessionStorage.getItem('atipicos_admin_autorizado') !== '1') {
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Painel Administrativo — Atípicos Frios</title>
+  <link rel="icon" href="../images/logo.png">
+  <link rel="stylesheet" href="admin.css">
+  <script>
     window.location.replace('../index.html?admin=1');
-  }
-</script>
+  </script>
 </head>
+
 <body>
 
-<header class="admin-header">
-  <div class="admin-header-marca">
-    <img src="../images/logo.png" alt="Atípicos Frios">
-    <div>
-      <strong>Atípicos Frios</strong>
-      <span>Painel Administrativo de Produtos</span>
+  <header class="admin-header">
+    <div class="admin-header-marca">
+      <img src="../images/logo.png" alt="Atípicos Frios">
+      <div>
+        <strong>Atípicos Frios</strong>
+        <span>Painel Administrativo de Produtos</span>
+      </div>
     </div>
-  </div>
-  <div class="admin-header-acoes">
-    <a class="admin-link-loja" href="../index.html" target="_blank" rel="noopener">Ver loja ↗</a>
-    <button class="admin-link-loja admin-sair" id="btnSairAdmin" type="button">Sair</button>
-  </div>
-</header>
-
-<main class="admin-main">
-  <section class="admin-toolbar">
-    <div class="admin-toolbar-busca">
-      <input type="search" id="buscaAdmin" placeholder="Buscar produto pelo nome...">
-      <select id="filtroStatusAdmin">
-        <option value="todos">Todos os status</option>
-        <option value="ativo">Somente ativos</option>
-        <option value="inativo">Somente inativos</option>
-      </select>
+    <div class="admin-header-acoes">
+      <a class="admin-link-loja" href="../index.html" target="_blank" rel="noopener">Ver loja ↗</a>
+      <button class="admin-link-loja admin-sair" id="btnSairAdmin" type="button">Sair</button>
     </div>
-    <button class="btn-admin btn-admin-primario" id="btnNovoProduto">+ Novo produto</button>
-  </section>
+  </header>
 
-  <p class="admin-resumo" id="resumoAdmin"></p>
+  <main class="admin-main">
+    <section class="admin-toolbar">
+      <div class="admin-toolbar-busca">
+        <input type="search" id="buscaAdmin" placeholder="Buscar produto pelo nome...">
+        <select id="filtroStatusAdmin">
+          <option value="todos">Todos os status</option>
+          <option value="ativo">Somente ativos</option>
+          <option value="inativo">Somente inativos</option>
+        </select>
+      </div>
+      <button class="btn-admin btn-admin-primario" id="btnNovoProduto">+ Novo produto</button>
+    </section>
 
-  <section class="admin-tabela-wrap">
-    <table class="admin-tabela">
-      <thead>
-        <tr>
-          <th class="col-img"></th>
-          <th>Produto</th>
-          <th>Preço</th>
-          <th>Exibir em</th>
-          <th>Status</th>
-          <th class="col-acoes">Ações</th>
-        </tr>
-      </thead>
-      <tbody id="corpoTabelaAdmin"></tbody>
-    </table>
-    <p class="admin-vazio" id="tabelaVaziaAdmin" style="display:none;">Nenhum produto encontrado.</p>
-  </section>
+    <p class="admin-resumo" id="resumoAdmin"></p>
 
-  <p class="admin-rodape-nota">
-    Os dados ficam salvos no navegador (localStorage). Toda alteração aqui é refletida
-    automaticamente na loja assim que a página dela for aberta ou atualizada.
-  </p>
-</main>
+    <section class="admin-tabela-wrap">
+      <table class="admin-tabela">
+        <thead>
+          <tr>
+            <th class="col-img"></th>
+            <th>Produto</th>
+            <th>Preço</th>
+            <th>Exibir em</th>
+            <th>Status</th>
+            <th class="col-acoes">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="corpoTabelaAdmin"></tbody>
+      </table>
+      <p class="admin-vazio" id="tabelaVaziaAdmin" style="display:none;">Nenhum produto encontrado.</p>
+    </section>
 
-<!-- ===================== MODAL: Adicionar / Editar produto ===================== -->
-<div class="admin-modal-fundo" id="modalFundo">
-  <div class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
-    <div class="admin-modal-topo">
-      <h2 id="modalTitulo">Novo produto</h2>
-      <button class="admin-modal-fechar" id="btnFecharModal" aria-label="Fechar">&times;</button>
-    </div>
+    <p class="admin-rodape-nota">
+      Os dados ficam salvos no navegador (localStorage). Toda alteração aqui é refletida
+      automaticamente na loja assim que a página dela for aberta ou atualizada.
+    </p>
+  </main>
 
-    <form id="formProduto" class="admin-form">
-      <input type="hidden" id="campoId">
+  <!-- ===================== MODAL: Adicionar / Editar produto ===================== -->
+  <div class="admin-modal-fundo" id="modalFundo">
+    <div class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+      <div class="admin-modal-topo">
+        <h2 id="modalTitulo">Novo produto</h2>
+        <button class="admin-modal-fechar" id="btnFecharModal" aria-label="Fechar">&times;</button>
+      </div>
 
-      <div class="admin-form-grid">
-        <label class="admin-campo campo-largo">
-          <span>Nome do produto *</span>
-          <input type="text" id="campoNome" required placeholder="Ex.: Queijo Coalho Geason Diniz">
-        </label>
+      <form id="formProduto" class="admin-form">
+        <input type="hidden" id="campoId">
 
-        <label class="admin-campo">
-          <span>Unidade</span>
-          <input type="text" id="campoUnidade" placeholder="Ex.: un., bandeja, kg">
-        </label>
+        <div class="admin-form-grid">
+          <label class="admin-campo campo-largo">
+            <span>Nome do produto *</span>
+            <input type="text" id="campoNome" required placeholder="Ex.: Queijo Coalho Geason Diniz">
+          </label>
 
-        <label class="admin-campo">
-          <span>Preço (R$)</span>
-          <input type="number" id="campoPreco" min="0" step="0.01" placeholder="Ex.: 23.00">
-        </label>
+          <label class="admin-campo">
+            <span>Unidade</span>
+            <input type="text" id="campoUnidade" placeholder="Ex.: un., bandeja, kg">
+          </label>
 
-        <label class="admin-campo campo-largo">
-          <span>Descrição</span>
-          <textarea id="campoDescricao" rows="2" placeholder="Frase curta que aparece no card"></textarea>
-        </label>
+          <label class="admin-campo">
+            <span>Preço (R$)</span>
+            <input type="number" id="campoPreco" min="0" step="0.01" placeholder="Ex.: 23.00">
+          </label>
 
-        <label class="admin-campo">
-          <span>Preço antigo (R$)</span>
-          <input type="number" id="campoPrecoAntigo" min="0" step="0.01" placeholder="Opcional, para mostrar desconto">
-        </label>
+          <label class="admin-campo campo-largo">
+            <span>Descrição</span>
+            <textarea id="campoDescricao" rows="2" placeholder="Frase curta que aparece no card"></textarea>
+          </label>
 
-        <div class="admin-campo campo-largo">
-          <span>Imagem</span>
-          <div class="admin-imagem-escolha">
-            <img id="previewImagem" class="admin-imagem-preview" src="../images/em-breve.png" alt="Pré-visualização">
-            <div class="admin-imagem-controles">
-              <input type="text" id="campoImagemUrl" placeholder="Deixe vazio para usar a imagem Em breve">
-              <label class="btn-admin btn-admin-secundario admin-upload-btn">
-                Enviar arquivo…
-                <input type="file" id="campoImagemArquivo" accept="image/*" hidden>
-              </label>
-              <small>Sem imagem própria, o site usa automaticamente “Em breve”.</small>
+          <label class="admin-campo">
+            <span>Preço antigo (R$)</span>
+            <input type="number" id="campoPrecoAntigo" min="0" step="0.01"
+              placeholder="Opcional, para mostrar desconto">
+          </label>
+
+          <div class="admin-campo campo-largo">
+            <span>Imagem</span>
+            <div class="admin-imagem-escolha">
+              <img id="previewImagem" class="admin-imagem-preview" src="../images/em-breve.png" alt="Pré-visualização">
+              <div class="admin-imagem-controles">
+                <input type="text" id="campoImagemUrl" placeholder="Deixe vazio para usar a imagem Em breve">
+                <label class="btn-admin btn-admin-secundario admin-upload-btn">
+                  Enviar arquivo…
+                  <input type="file" id="campoImagemArquivo" accept="image/*" hidden>
+                </label>
+                <small>Sem imagem própria, o site usa automaticamente “Em breve”.</small>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="admin-campo campo-largo">
-          <span class="admin-secoes-titulo">Onde este produto deve aparecer?</span>
-          <div class="admin-checks admin-checks-secoes">
-            <label class="admin-check"><input type="checkbox" id="campoCatalogo"><span>Produtos disponíveis na loja</span></label>
-            <label class="admin-check"><input type="checkbox" id="campoDestaque"><span>Produtos em destaque</span></label>
-            <label class="admin-check"><input type="checkbox" id="campoNovo"><span>Chegou na Atípicos</span></label>
-            <label class="admin-check"><input type="checkbox" id="campoOferta"><span>Ofertas da semana</span></label>
+          <div class="admin-campo campo-largo">
+            <span class="admin-secoes-titulo">Onde este produto deve aparecer?</span>
+            <div class="admin-checks admin-checks-secoes">
+              <label class="admin-check"><input type="checkbox" id="campoCatalogo"><span>Produtos disponíveis na
+                  loja</span></label>
+              <label class="admin-check"><input type="checkbox" id="campoDestaque"><span>Produtos em
+                  destaque</span></label>
+              <label class="admin-check"><input type="checkbox" id="campoNovo"><span>Chegou na Atípicos</span></label>
+              <label class="admin-check"><input type="checkbox" id="campoOferta"><span>Ofertas da semana</span></label>
+            </div>
+          </div>
+
+          <div class="admin-campo campo-largo admin-checks admin-checks-status">
+            <label class="admin-check"><input type="checkbox" id="campoDisponivel" checked><span>Produto ativo /
+                disponível</span></label>
           </div>
         </div>
 
-        <div class="admin-campo campo-largo admin-checks admin-checks-status">
-          <label class="admin-check"><input type="checkbox" id="campoDisponivel" checked><span>Produto ativo / disponível</span></label>
+        <div class="admin-form-acoes">
+          <button type="button" class="btn-admin btn-admin-secundario" id="btnCancelarModal">Cancelar</button>
+          <button type="submit" class="btn-admin btn-admin-primario">Salvar produto</button>
         </div>
-      </div>
+      </form>
+    </div>
+  </div>
 
+  <!-- ===================== MODAL: Confirmar exclusão ===================== -->
+  <div class="admin-modal-fundo" id="modalExcluirFundo">
+    <div class="admin-modal admin-modal-pequeno" role="dialog" aria-modal="true">
+      <div class="admin-modal-topo">
+        <h2>Excluir produto</h2>
+        <button class="admin-modal-fechar" id="btnFecharModalExcluir" aria-label="Fechar">&times;</button>
+      </div>
+      <p class="admin-confirmar-texto">
+        Tem certeza que deseja excluir <strong id="nomeProdutoExcluir"></strong>? Essa ação não pode ser desfeita.
+      </p>
       <div class="admin-form-acoes">
-        <button type="button" class="btn-admin btn-admin-secundario" id="btnCancelarModal">Cancelar</button>
-        <button type="submit" class="btn-admin btn-admin-primario">Salvar produto</button>
+        <button type="button" class="btn-admin btn-admin-secundario" id="btnCancelarExcluir">Cancelar</button>
+        <button type="button" class="btn-admin btn-admin-perigo" id="btnConfirmarExcluir">Excluir</button>
       </div>
-    </form>
-  </div>
-</div>
-
-<!-- ===================== MODAL: Confirmar exclusão ===================== -->
-<div class="admin-modal-fundo" id="modalExcluirFundo">
-  <div class="admin-modal admin-modal-pequeno" role="dialog" aria-modal="true">
-    <div class="admin-modal-topo">
-      <h2>Excluir produto</h2>
-      <button class="admin-modal-fechar" id="btnFecharModalExcluir" aria-label="Fechar">&times;</button>
-    </div>
-    <p class="admin-confirmar-texto">
-      Tem certeza que deseja excluir <strong id="nomeProdutoExcluir"></strong>? Essa ação não pode ser desfeita.
-    </p>
-    <div class="admin-form-acoes">
-      <button type="button" class="btn-admin btn-admin-secundario" id="btnCancelarExcluir">Cancelar</button>
-      <button type="button" class="btn-admin btn-admin-perigo" id="btnConfirmarExcluir">Excluir</button>
     </div>
   </div>
-</div>
 
-<div class="admin-toast" id="toastAdmin"></div>
+  <div class="admin-toast" id="toastAdmin"></div>
 
-<script src="../produtos.js"></script>
-<script src="produtos-store.js"></script>
-<script src="admin.js"></script>
+  <script src="../produtos.js"></script>
+  <script src="produtos-store.js"></script>
+  <script src="admin.js"></script>
 </body>
+
 </html>
