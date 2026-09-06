@@ -43,9 +43,9 @@ const BUSINESS_CONFIG = {
     cep: "",
   },
 
-  // Mapa (Google Maps embed genérico de Gravatá até ter endereço completo)
-  mapaEmbedUrl: "https://www.google.com/maps?q=Gravatá,+PE&output=embed",
-  mapaLinkExterno: "https://www.google.com/maps/search/?api=1&query=Gravatá+PE",
+  // Mapa da localização enviada pelo cliente
+  mapaEmbedUrl: "https://www.google.com/maps?q=R.%20Quinze%20de%20Novembro%2C%20720%20-%20Nossa%20Senhora%20das%20Gra%C3%A7as%2C%20Gravat%C3%A1%20-%20PE%2C%2055642-550&z=18&output=embed",
+  mapaLinkExterno: "https://maps.app.goo.gl/yqav9G48ntngmjQ38",
 
   // Delivery / iFood
   ifoodUrl: CONFIG.ifood || "",
