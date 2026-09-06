@@ -397,6 +397,9 @@ h1, h2, h3 { font-family: var(--fonte-cartaz); font-weight: 400; letter-spacing:
 }
 .nav-mobile a:last-child { border-bottom: none; }
 .nav-mobile a:hover, .nav-mobile a:active { background: rgba(255,255,255,.04); }
+.nav-mobile a.ativo {
+  color: #ffd400;
+}
 
 .mobile-ctas {
   display: flex;

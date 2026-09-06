@@ -6,6 +6,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   aplicarConfiguracoes();
   configurarMenuMobile();
+  configurarScrollSpy();
   configurarCarrossel();
   configurarAnoRodape();
   configurarAcessoAdmin();
@@ -206,6 +207,138 @@ function configurarMenuMobile() {
       fechar();
     }
   });
+}
+
+/* ---------------------------------------------------------------
+   Scroll spy da navegação
+   - mantém somente um link ativo por menu;
+   - acompanha cliques e rolagem manual;
+   - considera a altura real da navbar sticky;
+   - usa IntersectionObserver e uma linha de referência logo abaixo
+     do cabeçalho para evitar trocas cedo ou tarde demais.
+--------------------------------------------------------------- */
+function configurarScrollSpy() {
+  const header = document.querySelector('.header');
+  const navDesktop = document.querySelector('.nav-desktop');
+  const navMobile = document.querySelector('.nav-mobile');
+  const menus = [navDesktop, navMobile].filter(Boolean);
+
+  if (!menus.length) return;
+
+  const resolverAlvo = (hash) => {
+    // #topo aponta para <main>, que engloba toda a página. Para o scroll spy,
+    // usa somente o hero como região de "Início", sem alterar o href existente.
+    if (hash === '#topo') return document.querySelector('.hero');
+
+    try {
+      return document.querySelector(hash);
+    } catch (_) {
+      return null;
+    }
+  };
+
+  const dadosMenus = menus.map((menu) => {
+    const links = Array.from(menu.querySelectorAll('a[href^="#"]'));
+    const itens = links
+      .map((link) => {
+        const hash = link.getAttribute('href');
+        const secao = hash && hash !== '#' ? resolverAlvo(hash) : null;
+        return secao ? { link, hash, secao } : null;
+      })
+      .filter(Boolean);
+
+    return { menu, links, itens };
+  });
+
+  const definirAtivo = (dados, hash) => {
+    dados.links.forEach((link) => {
+      const ativo = link.getAttribute('href') === hash;
+      link.classList.toggle('ativo', ativo);
+
+      if (ativo) {
+        link.setAttribute('aria-current', 'location');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
+  };
+
+  const ordenarPorPagina = (itens) => [...itens].sort(
+    (a, b) => a.secao.getBoundingClientRect().top - b.secao.getBoundingClientRect().top,
+  );
+
+  let framePendente = false;
+
+  const atualizar = () => {
+    framePendente = false;
+
+    const alturaHeader = header ? header.getBoundingClientRect().height : 0;
+    // A linha de leitura fica logo abaixo da navbar, dentro do conteúdo visível.
+    const linhaAtiva = alturaHeader + 18;
+    const chegouAoFim = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+
+    dadosMenus.forEach((dados) => {
+      const itensOrdenados = ordenarPorPagina(dados.itens);
+      if (!itensOrdenados.length) return;
+
+      let atual = itensOrdenados[0];
+
+      itensOrdenados.forEach((item) => {
+        if (item.secao.getBoundingClientRect().top <= linhaAtiva) {
+          atual = item;
+        }
+      });
+
+      // No fim da página, mantém o último destino do menu selecionado
+      // (Contato/Localização no desktop, por exemplo).
+      if (chegouAoFim) atual = itensOrdenados[itensOrdenados.length - 1];
+
+      definirAtivo(dados, atual.hash);
+    });
+  };
+
+  const solicitarAtualizacao = () => {
+    if (framePendente) return;
+    framePendente = true;
+    requestAnimationFrame(atualizar);
+  };
+
+  // Atualiza imediatamente ao clicar. Durante o scroll suave, o estado volta
+  // a acompanhar naturalmente a seção que cruza a linha abaixo da navbar.
+  dadosMenus.forEach((dados) => {
+    dados.itens.forEach(({ link, hash }) => {
+      link.addEventListener('click', () => definirAtivo(dados, hash));
+    });
+  });
+
+  const secoesObservadas = new Set(
+    dadosMenus.flatMap((dados) => dados.itens.map((item) => item.secao)),
+  );
+
+  let observer = null;
+  const criarObserver = () => {
+    if (!('IntersectionObserver' in window)) return;
+    if (observer) observer.disconnect();
+
+    const alturaHeader = Math.ceil(header ? header.getBoundingClientRect().height : 0);
+    observer = new IntersectionObserver(solicitarAtualizacao, {
+      threshold: [0, 0.01, 0.25, 0.5, 0.75, 1],
+      rootMargin: `-${alturaHeader}px 0px -55% 0px`,
+    });
+
+    secoesObservadas.forEach((secao) => observer.observe(secao));
+  };
+
+  // O listener de scroll complementa o observer em seções muito altas e
+  // durante scroll suave, sempre com requestAnimationFrame para evitar custo extra.
+  window.addEventListener('scroll', solicitarAtualizacao, { passive: true });
+  window.addEventListener('resize', () => {
+    criarObserver();
+    solicitarAtualizacao();
+  }, { passive: true });
+
+  criarObserver();
+  atualizar();
 }
 
 /* ---------------------------------------------------------------
