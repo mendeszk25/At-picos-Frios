@@ -36,7 +36,7 @@
   --raio-peq:   8px;
   --container:  1180px;
   --sombra:     0 10px 30px rgba(0,0,0,.45);
-  --header-h:   78px;
+  --header-h:   88px;
 }
 
 /* ============================= RESET / BASE ============================= */
@@ -1079,13 +1079,19 @@ h1.hero h1,
   border-bottom-color: #28313a;
 }
 .header-inner {
-  height: 78px;
+  height: var(--header-h);
   max-width: 1540px;
 }
-.marca { min-width: 210px; }
+.marca {
+  min-width: 210px;
+  height: 100%;
+  align-items: center;
+}
 .marca img {
-  width: 230px;
-  height: 70px;
+  display: block;
+  width: auto;
+  height: clamp(77px, 5vw, 80px);
+  max-height: calc(100% - 10px);
   object-fit: contain;
   object-position: left center;
   border-radius: 0;
@@ -1129,6 +1135,7 @@ h1.hero h1,
   max-height: 690px;
   object-fit: cover;
   object-position: center top;
+  clip-path: inset(3px 0 0 0);
 }
 .hero-hotspot {
   position: absolute;
@@ -1208,14 +1215,19 @@ h1.hero h1,
   .nav-desktop ul { gap: 15px; }
   .nav-desktop a { font-size: 12.5px; }
   .marca { min-width: 170px; }
-  .marca img { width: 185px; }
+  .marca img { width: auto; }
   .btn-peq { padding: 8px 10px; font-size: 12px; }
 }
 
 @media (max-width: 979px) {
-  .header-inner { height: 68px; }
+  :root { --header-h: 74px; }
+  .header-inner { height: var(--header-h); }
   .marca { min-width: 0; }
-  .marca img { width: 165px; height: 58px; }
+  .marca img {
+    width: auto;
+    height: 64px;
+    max-height: calc(100% - 10px);
+  }
   .header-acoes .btn-whats { display: none; }
   .hero-reference-frame {
     overflow: hidden;
