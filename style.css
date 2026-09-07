@@ -4,8 +4,6 @@
    Tipografia: Anton (cartaz/açougue) + Manrope (leitura).
    ==================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&display=swap');
-
 :root {
   /* Cores */
   --preto:          #0a0a0c;
@@ -58,6 +56,17 @@ body {
 }
 
 img    { max-width: 100%; display: block; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 a      { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; border: none; background: none; }
 ul     { margin: 0; padding: 0; list-style: none; }

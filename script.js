@@ -274,44 +274,47 @@ function configurarScrollSpy() {
       const ativo = link.getAttribute('href') === hash;
       link.classList.toggle('ativo', ativo);
 
-      if (ativo) {
-        link.setAttribute('aria-current', 'location');
-      } else {
-        link.removeAttribute('aria-current');
-      }
+      if (ativo) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
     });
   };
 
-  const ordenarPorPagina = (itens) => [...itens].sort(
-    (a, b) => a.secao.getBoundingClientRect().top - b.secao.getBoundingClientRect().top,
-  );
-
   let framePendente = false;
+  let alturaHeader = 0;
+  let medidasMenus = [];
+  let observer = null;
+  let resizeFrame = null;
+
+  // Mede a geometria só quando o layout realmente pode ter mudado. Antes,
+  // getBoundingClientRect() era chamado várias vezes em todo frame de scroll.
+  const medir = () => {
+    alturaHeader = Math.ceil(header ? header.getBoundingClientRect().height : 0);
+    medidasMenus = dadosMenus.map((dados) => ({
+      dados,
+      itens: dados.itens
+        .map((item) => ({
+          ...item,
+          topo: item.secao.getBoundingClientRect().top + window.scrollY,
+        }))
+        .sort((a, b) => a.topo - b.topo),
+    }));
+  };
 
   const atualizar = () => {
     framePendente = false;
-
-    const alturaHeader = header ? header.getBoundingClientRect().height : 0;
-    // A linha de leitura fica logo abaixo da navbar, dentro do conteúdo visível.
-    const linhaAtiva = alturaHeader + 18;
+    const linhaAtiva = window.scrollY + alturaHeader + 18;
     const chegouAoFim = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
 
-    dadosMenus.forEach((dados) => {
-      const itensOrdenados = ordenarPorPagina(dados.itens);
-      if (!itensOrdenados.length) return;
+    medidasMenus.forEach(({ dados, itens }) => {
+      if (!itens.length) return;
+      let atual = itens[0];
 
-      let atual = itensOrdenados[0];
+      for (const item of itens) {
+        if (item.topo > linhaAtiva) break;
+        atual = item;
+      }
 
-      itensOrdenados.forEach((item) => {
-        if (item.secao.getBoundingClientRect().top <= linhaAtiva) {
-          atual = item;
-        }
-      });
-
-      // No fim da página, mantém o último destino do menu selecionado
-      // (Contato/Localização no desktop, por exemplo).
-      if (chegouAoFim) atual = itensOrdenados[itensOrdenados.length - 1];
-
+      if (chegouAoFim) atual = itens[itens.length - 1];
       definirAtivo(dados, atual.hash);
     });
   };
@@ -322,8 +325,6 @@ function configurarScrollSpy() {
     requestAnimationFrame(atualizar);
   };
 
-  // Atualiza imediatamente ao clicar. Durante o scroll suave, o estado volta
-  // a acompanhar naturalmente a seção que cruza a linha abaixo da navbar.
   dadosMenus.forEach((dados) => {
     dados.itens.forEach(({ link, hash }) => {
       link.addEventListener('click', () => definirAtivo(dados, hash));
@@ -334,32 +335,42 @@ function configurarScrollSpy() {
     dadosMenus.flatMap((dados) => dados.itens.map((item) => item.secao)),
   );
 
-  let observer = null;
   const criarObserver = () => {
     if (!('IntersectionObserver' in window)) return;
     if (observer) observer.disconnect();
 
-    const alturaHeader = Math.ceil(header ? header.getBoundingClientRect().height : 0);
     observer = new IntersectionObserver(solicitarAtualizacao, {
-      threshold: [0, 0.01, 0.25, 0.5, 0.75, 1],
+      threshold: [0, 0.01, 0.5, 1],
       rootMargin: `-${alturaHeader}px 0px -55% 0px`,
     });
 
     secoesObservadas.forEach((secao) => observer.observe(secao));
   };
 
-  // O listener de scroll complementa o observer em seções muito altas e
-  // durante scroll suave, sempre com requestAnimationFrame para evitar custo extra.
-  window.addEventListener('scroll', solicitarAtualizacao, { passive: true });
-  window.addEventListener('resize', () => {
+  const remedir = () => {
+    medir();
     criarObserver();
     solicitarAtualizacao();
+  };
+
+  window.addEventListener('scroll', solicitarAtualizacao, { passive: true });
+  window.addEventListener('resize', () => {
+    if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => {
+      resizeFrame = null;
+      remedir();
+    });
   }, { passive: true });
 
+  // As grades de produtos alteram a altura das seções; remede somente depois
+  // dessas mudanças, não a cada scroll.
+  window.addEventListener('produtos:atualizados', () => requestAnimationFrame(remedir));
+  if (document.fonts?.ready) document.fonts.ready.then(remedir).catch(() => {});
+
+  medir();
   criarObserver();
   atualizar();
 }
-
 /* ---------------------------------------------------------------
    Carrossel de ofertas (setas de navegação no desktop)
 --------------------------------------------------------------- */

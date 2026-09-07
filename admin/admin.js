@@ -10,7 +10,7 @@ const ESTADO_ADMIN = {
   exclusaoId: null,
 };
 
-const IMAGEM_PADRAO_ADMIN = 'images/em-breve.png';
+const IMAGEM_PADRAO_ADMIN = 'images/em-breve.webp';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const status = document.getElementById('statusAcessoAdmin');
@@ -50,7 +50,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') conferirSessao();
     });
-    setInterval(conferirSessao, 60000);
+    setInterval(() => {
+      if (document.visibilityState === 'visible') conferirSessao();
+    }, 60000);
 
     // A sessão já foi confirmada pelo servidor. Libera a interface agora,
     // sem segurar a abertura do painel esperando a leitura pública do catálogo.
@@ -61,6 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderizarTabela();
     configurarBusca();
     configurarFiltros();
+    configurarTabelaEventos();
     configurarModalProduto();
     configurarModalExclusao();
 
@@ -145,8 +148,8 @@ function mostrarToast(mensagem) {
   mostrarToast._t = setTimeout(() => toast.classList.remove('mostrar'), 2200);
 }
 
-function produtosFiltrados() {
-  return ProdutosStore.listar().filter((p) => {
+function produtosFiltrados(produtos = ProdutosStore.listar()) {
+  return produtos.filter((p) => {
     const buscaOk = slug(p.nome).includes(slug(ESTADO_ADMIN.busca));
     const statusOk = ESTADO_ADMIN.status === 'todos'
       || (ESTADO_ADMIN.status === 'ativo' && p.disponivel)
@@ -174,8 +177,9 @@ function renderizarTabela() {
   const corpo = document.getElementById('corpoTabelaAdmin');
   const vazio = document.getElementById('tabelaVaziaAdmin');
   const resumo = document.getElementById('resumoAdmin');
-  const lista = produtosFiltrados();
-  const total = ProdutosStore.listar().length;
+  const produtos = ProdutosStore.listar();
+  const lista = produtosFiltrados(produtos);
+  const total = produtos.length;
 
   resumo.textContent = `${lista.length} de ${total} produto${total === 1 ? '' : 's'} exibido${lista.length === 1 ? '' : 's'}`;
 
@@ -190,7 +194,7 @@ function renderizarTabela() {
     <tr class="${p.disponivel ? '' : 'inativo'}" data-id="${escaparAtributo(p.id)}">
       <td class="col-img">
         <div class="linha-thumb">
-          <img src="${escaparAtributo(caminhoImagemAdmin(p.imagem))}" alt="" data-admin-img>
+          <img src="${escaparAtributo(caminhoImagemAdmin(p.imagem))}" alt="" data-admin-img loading="lazy" decoding="async">
         </div>
       </td>
       <td>
@@ -215,34 +219,51 @@ function renderizarTabela() {
     </tr>
   `).join('');
 
-  corpo.querySelectorAll('[data-admin-img]').forEach((img) => {
-    img.onerror = () => { img.src = '../images/em-breve.png'; };
+}
+
+function configurarTabelaEventos() {
+  const corpo = document.getElementById('corpoTabelaAdmin');
+  if (!corpo) return;
+
+  // Delegação evita recriar dezenas de listeners toda vez que a tabela filtra.
+  corpo.addEventListener('error', (e) => {
+    const img = e.target.closest?.('[data-admin-img]');
+    if (img && !img.src.endsWith('/images/em-breve.webp')) img.src = '../images/em-breve.webp';
+  }, true);
+
+  corpo.addEventListener('change', async (e) => {
+    const chk = e.target.closest?.('.chk-status');
+    if (!chk) return;
+    chk.disabled = true;
+    try {
+      await ProdutosStore.atualizar(chk.dataset.id, { disponivel: chk.checked });
+      mostrarToast(chk.checked ? 'Produto ativado.' : 'Produto desativado.');
+    } catch (falha) {
+      chk.checked = !chk.checked;
+      mostrarToast(AtipicosBackend.mensagem(falha));
+    } finally {
+      chk.disabled = false;
+    }
   });
 
-  corpo.querySelectorAll('.chk-status').forEach((chk) => {
-    chk.addEventListener('change', async () => {
-      chk.disabled = true;
-      try {
-        await ProdutosStore.atualizar(chk.dataset.id, { disponivel: chk.checked });
-        mostrarToast(chk.checked ? 'Produto ativado.' : 'Produto desativado.');
-      } catch (e) { chk.checked = !chk.checked; mostrarToast(AtipicosBackend.mensagem(e)); }
-      finally { chk.disabled = false; }
-    });
-  });
-
-  corpo.querySelectorAll('.btn-editar').forEach((btn) => {
-    btn.addEventListener('click', () => abrirModalEdicao(btn.dataset.id));
-  });
-
-  corpo.querySelectorAll('.btn-excluir').forEach((btn) => {
-    btn.addEventListener('click', () => abrirModalExclusao(btn.dataset.id, btn.dataset.nome));
+  corpo.addEventListener('click', (e) => {
+    const editar = e.target.closest?.('.btn-editar');
+    if (editar) {
+      abrirModalEdicao(editar.dataset.id);
+      return;
+    }
+    const excluir = e.target.closest?.('.btn-excluir');
+    if (excluir) abrirModalExclusao(excluir.dataset.id, excluir.dataset.nome);
   });
 }
 
 function configurarBusca() {
-  document.getElementById('buscaAdmin').addEventListener('input', (e) => {
+  const input = document.getElementById('buscaAdmin');
+  let timer = null;
+  input.addEventListener('input', (e) => {
     ESTADO_ADMIN.busca = e.target.value;
-    renderizarTabela();
+    clearTimeout(timer);
+    timer = setTimeout(renderizarTabela, 120);
   });
 }
 
@@ -340,7 +361,7 @@ function atualizarPreviewImagem(valor) {
   preview.style.display = 'block';
   preview.onerror = () => {
     preview.onerror = null;
-    preview.src = '../images/em-breve.png';
+    preview.src = '../images/em-breve.webp';
   };
 }
 

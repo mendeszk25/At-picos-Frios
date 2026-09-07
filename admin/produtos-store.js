@@ -2,10 +2,11 @@
 const ProdutosStore = (() => {
   const api = window.AtipicosBackend;
   const ouvintes = new Set();
-  const padrao = 'images/em-breve.png';
+  const padrao = 'images/em-breve.webp';
   let cache = typeof PRODUTOS === 'undefined' ? [] : structuredClone(PRODUTOS);
   let pronto = false;
-  let atualizando = false;
+  let atualizacaoEmCurso = null;
+  let assinaturaCache = JSON.stringify(cache);
 
   function publicar() {
     ouvintes.forEach((fn) => fn());
@@ -37,18 +38,27 @@ const ProdutosStore = (() => {
     return dados;
   }
 
-  async function recarregar() {
-    if (atualizando) return;
-    atualizando = true;
-    try {
+  function recarregar() {
+    if (atualizacaoEmCurso) return atualizacaoEmCurso;
+
+    atualizacaoEmCurso = (async () => {
       const remotos = await api.listarProdutosPublicos();
+      remotos.sort((a, b) => String(a.id).localeCompare(String(b.id), 'pt-BR', { numeric: true }));
+
+      const novaAssinatura = JSON.stringify(remotos);
+      const mudou = novaAssinatura !== assinaturaCache;
       cache = remotos;
-      cache.sort((a, b) => String(a.id).localeCompare(String(b.id), 'pt-BR', { numeric: true }));
+      assinaturaCache = novaAssinatura;
       pronto = true;
-      publicar();
-    } finally {
-      atualizando = false;
-    }
+
+      // Polling não deve reconstruir todas as grades quando nada mudou.
+      if (mudou) publicar();
+      return mudou;
+    })().finally(() => {
+      atualizacaoEmCurso = null;
+    });
+
+    return atualizacaoEmCurso;
   }
 
   const carregamento = recarregar();
@@ -59,7 +69,9 @@ const ProdutosStore = (() => {
 
   // Mantém a loja aberta refletindo mudanças administrativas sem exigir reload.
   // Falhas silenciosas aqui não derrubam o catálogo embutido/fonte já carregada.
-  setInterval(() => recarregar().catch(() => {}), 45000);
+  setInterval(() => {
+    if (document.visibilityState === 'visible') recarregar().catch(() => {});
+  }, 60000);
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') recarregar().catch(() => {});
   });
@@ -67,8 +79,15 @@ const ProdutosStore = (() => {
   async function gravar(acao) {
     if (!pronto) throw api.erro('product/not-ready');
     if (!navigator.onLine) throw api.erro('network/offline');
-    await api.exigirAdmin();
+    // As rotas de mutação já validam a sessão no servidor; evitar um GET
+    // /session antes de cada operação remove uma ida de rede redundante.
     const resultado = await acao();
+
+    // Se uma leitura começou antes da mutação, espere-a terminar e faça uma
+    // nova leitura para garantir que a tabela reflita a gravação recém-feita.
+    if (atualizacaoEmCurso) {
+      try { await atualizacaoEmCurso; } catch (_) { /* a nova leitura abaixo decide o estado final */ }
+    }
     await recarregar();
     return resultado;
   }

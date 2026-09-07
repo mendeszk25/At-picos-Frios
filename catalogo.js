@@ -5,9 +5,11 @@
    quais seções aparece (catálogo, ofertas, novidades e destaques).
    ==================================================================== */
 
-const IMAGEM_PRODUTO_PADRAO = 'images/em-breve.png';
+const IMAGEM_PRODUTO_PADRAO = 'images/em-breve.webp';
 const CHAVE_CARRINHO = 'atipicosfrios_carrinho_v1';
 const WHATSAPP_NUMBER = "5581994259307";
+const FORMATADOR_BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+let INDICE_PRODUTOS = new Map();
 
 const ESTADO_CATALOGO = {
   busca: '',
@@ -20,6 +22,7 @@ let CARRINHO = carregarCarrinho();
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof ProdutosStore === 'undefined' && typeof PRODUTOS === 'undefined') return;
 
+  configurarFallbackImagens();
   renderizarTudo();
   configurarBuscaProdutos();
   configurarFiltroDisponibilidade();
@@ -43,8 +46,9 @@ function obterProdutos() {
 }
 
 function buscarProduto(id) {
-  return obterProdutos().find((p) => String(p.id) === String(id)) || null;
+  return INDICE_PRODUTOS.get(String(id)) || null;
 }
+
 
 function escaparHtml(texto) {
   return String(texto ?? '')
@@ -60,11 +64,9 @@ function imagemProduto(produto) {
 }
 
 function formatarMoeda(valor) {
-  return Number(valor || 0).toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  });
+  return FORMATADOR_BRL.format(Number(valor || 0));
 }
+
 
 function formatarPreco(produto) {
   if (produto.preco === null || produto.preco === undefined || produto.preco === '') {
@@ -86,21 +88,22 @@ function produtoCorrespondeBusca(produto, busca) {
 }
 
 function configurarFallbackImagens() {
-  document.querySelectorAll('img[data-produto-img]').forEach((img) => {
-    img.onerror = () => {
-      if (!img.src.endsWith('/images/em-breve.png')) {
-        img.src = IMAGEM_PRODUTO_PADRAO;
-      }
-    };
-  });
+  // O evento error não borbulha, mas pode ser capturado no document. Assim
+  // imagens criadas depois por innerHTML também recebem fallback sem varrer o DOM.
+  document.addEventListener('error', (evento) => {
+    const img = evento.target;
+    if (!(img instanceof HTMLImageElement) || !img.matches('[data-produto-img]')) return;
+    if (!img.src.endsWith('/images/em-breve.webp')) img.src = IMAGEM_PRODUTO_PADRAO;
+  }, true);
 }
 
 function renderizarTudo() {
-  renderizarOfertas();
-  renderizarNovidades();
-  renderizarDestaques();
-  renderizarCatalogo();
-  configurarFallbackImagens();
+  const produtos = obterProdutos();
+  INDICE_PRODUTOS = new Map(produtos.map((p) => [String(p.id), p]));
+  renderizarOfertas(produtos);
+  renderizarNovidades(produtos);
+  renderizarDestaques(produtos);
+  renderizarCatalogo(produtos);
 }
 
 function botaoAdicionar(produto, classeExtra = '') {
@@ -111,12 +114,12 @@ function botaoAdicionar(produto, classeExtra = '') {
 /* ---------------------------------------------------------------
    Catálogo principal
 --------------------------------------------------------------- */
-function renderizarCatalogo() {
+function renderizarCatalogo(produtos = obterProdutos()) {
   const grade = document.getElementById('gradeProdutos');
   const semResultados = document.getElementById('semResultados');
   if (!grade) return;
 
-  let lista = obterProdutos()
+  let lista = produtos
     .filter((p) => p.catalogo !== false)
     .filter((p) => produtoCorrespondeBusca(p, ESTADO_CATALOGO.busca));
 
@@ -133,7 +136,7 @@ function renderizarCatalogo() {
 
   grade.innerHTML = lista.map((p) => `
     <article class="produto ${p.disponivel ? '' : 'indisponivel'}">
-      <div class="produto-icone"><img data-produto-img src="${escaparHtml(imagemProduto(p))}" alt="${escaparHtml(p.nome)}" loading="lazy"></div>
+      <div class="produto-icone"><img data-produto-img src="${escaparHtml(imagemProduto(p))}" alt="${escaparHtml(p.nome)}" loading="lazy" decoding="async"></div>
       <div class="produto-etiquetas">
         ${p.novo ? '<span class="cartao-oferta-tag">Novo</span>' : ''}
         ${p.oferta ? '<span class="cartao-oferta-tag vermelha">Oferta</span>' : ''}
@@ -151,11 +154,11 @@ function renderizarCatalogo() {
 /* ---------------------------------------------------------------
    Ofertas da semana
 --------------------------------------------------------------- */
-function renderizarOfertas() {
+function renderizarOfertas(produtos = obterProdutos()) {
   const trilho = document.getElementById('trilhoOfertas');
   if (!trilho) return;
 
-  const lista = obterProdutos().filter((p) => p.oferta && p.disponivel);
+  const lista = produtos.filter((p) => p.oferta && p.disponivel);
   if (!lista.length) {
     trilho.innerHTML = '<p style="padding:20px;color:var(--osso-fraco)">Nenhuma oferta no momento.</p>';
     return;
@@ -163,7 +166,7 @@ function renderizarOfertas() {
 
   trilho.innerHTML = lista.map((p) => `
     <article class="cartao-oferta">
-      <div class="cartao-oferta-img"><img data-produto-img src="${escaparHtml(imagemProduto(p))}" alt="${escaparHtml(p.nome)}" loading="lazy"></div>
+      <div class="cartao-oferta-img"><img data-produto-img src="${escaparHtml(imagemProduto(p))}" alt="${escaparHtml(p.nome)}" loading="lazy" decoding="async"></div>
       <div class="cartao-oferta-corpo">
         <span class="cartao-oferta-tag vermelha">Oferta da semana</span>
         <h3>${escaparHtml(p.nome)}</h3>
@@ -178,11 +181,11 @@ function renderizarOfertas() {
 /* ---------------------------------------------------------------
    Chegou na Atípicos
 --------------------------------------------------------------- */
-function renderizarNovidades() {
+function renderizarNovidades(produtos = obterProdutos()) {
   const grade = document.getElementById('novidadesGrid');
   if (!grade) return;
 
-  const lista = obterProdutos().filter((p) => p.novo && p.disponivel);
+  const lista = produtos.filter((p) => p.novo && p.disponivel);
   if (!lista.length) {
     grade.innerHTML = '<p class="secao-vazia">Nenhuma novidade cadastrada no momento.</p>';
     return;
@@ -190,7 +193,7 @@ function renderizarNovidades() {
 
   grade.innerHTML = lista.map((p) => `
     <article class="novidade">
-      <div class="novidade-img"><img data-produto-img src="${escaparHtml(imagemProduto(p))}" alt="${escaparHtml(p.nome)}" loading="lazy"></div>
+      <div class="novidade-img"><img data-produto-img src="${escaparHtml(imagemProduto(p))}" alt="${escaparHtml(p.nome)}" loading="lazy" decoding="async"></div>
       <div class="novidade-corpo">
         <span class="faixa">Novo por aqui</span>
         <h3>${escaparHtml(p.nome)}</h3>
@@ -204,11 +207,11 @@ function renderizarNovidades() {
 /* ---------------------------------------------------------------
    Produtos em destaque
 --------------------------------------------------------------- */
-function renderizarDestaques() {
+function renderizarDestaques(produtos = obterProdutos()) {
   const grade = document.getElementById('gradeDestaques');
   if (!grade) return;
 
-  const lista = obterProdutos().filter((p) => p.destaque && p.disponivel);
+  const lista = produtos.filter((p) => p.destaque && p.disponivel);
   if (!lista.length) {
     grade.innerHTML = '<p class="secao-vazia">Nenhum produto em destaque no momento.</p>';
     return;
@@ -216,7 +219,7 @@ function renderizarDestaques() {
 
   grade.innerHTML = lista.map((p) => `
     <article class="destaque">
-      <img data-produto-img src="${escaparHtml(imagemProduto(p))}" alt="${escaparHtml(p.nome)}" loading="lazy">
+      <img data-produto-img src="${escaparHtml(imagemProduto(p))}" alt="${escaparHtml(p.nome)}" loading="lazy" decoding="async">
       <span class="destaque-selo">${p.oferta ? 'Oferta' : 'Destaque'}</span>
       <div class="destaque-legenda">
         <h3>${escaparHtml(p.nome)}</h3>
@@ -240,7 +243,6 @@ function configurarBuscaProdutos() {
     debounce = setTimeout(() => {
       ESTADO_CATALOGO.busca = input.value;
       renderizarCatalogo();
-      configurarFallbackImagens();
     }, 180);
   });
 
@@ -249,7 +251,6 @@ function configurarBuscaProdutos() {
       input.value = '';
       ESTADO_CATALOGO.busca = '';
       renderizarCatalogo();
-      configurarFallbackImagens();
     }
   });
 }
@@ -260,7 +261,6 @@ function configurarFiltroDisponibilidade() {
   checkbox.addEventListener('change', () => {
     ESTADO_CATALOGO.apenasDisponiveis = checkbox.checked;
     renderizarCatalogo();
-    configurarFallbackImagens();
   });
 }
 
@@ -376,7 +376,7 @@ function renderizarCarrinho() {
   itensEl.innerHTML = itens.map(({ produto: p, quantidade, precoUnitario, subtotal }) => {
     return `
       <article class="carrinho-item">
-        <img data-produto-img src="${escaparHtml(imagemProduto(p))}" alt="${escaparHtml(p.nome)}">
+        <img data-produto-img src="${escaparHtml(imagemProduto(p))}" alt="${escaparHtml(p.nome)}" loading="lazy" decoding="async">
         <div class="carrinho-item-info">
           <strong>${escaparHtml(p.nome)}</strong>
           <span>${precoUnitario === null ? 'Preço a confirmar' : `${formatarMoeda(precoUnitario)} / ${escaparHtml(p.unidade || 'un.')}`}</span>

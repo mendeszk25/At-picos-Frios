@@ -51,6 +51,19 @@ window.AtipicosBackend = (() => {
     sessionStorage.removeItem(CHAVE_SESSAO);
   }
 
+
+  async function fetchComTimeout(recurso, opcoes = {}, timeoutMs = 12000) {
+    if (typeof AbortController !== 'function') return fetch(recurso, opcoes);
+
+    const controlador = new AbortController();
+    const timer = setTimeout(() => controlador.abort(), timeoutMs);
+    try {
+      return await fetch(recurso, { ...opcoes, signal: controlador.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   async function interpretarResposta(resposta) {
     let corpo = null;
     try { corpo = await resposta.json(); } catch (_) { /* resposta sem JSON */ }
@@ -69,7 +82,7 @@ window.AtipicosBackend = (() => {
     }
     let resposta;
     try {
-      resposta = await fetch(`${url}/functions/v1/admin-api${caminho}`, {
+      resposta = await fetchComTimeout(`${url}/functions/v1/admin-api${caminho}`, {
         ...opcoes,
         headers,
         cache: 'no-store',
@@ -129,7 +142,7 @@ window.AtipicosBackend = (() => {
     const { url } = config();
     let resposta;
     try {
-      resposta = await fetch(`${url}/rest/v1/atipicos_produtos?select=id,dados`, {
+      resposta = await fetchComTimeout(`${url}/rest/v1/atipicos_produtos?select=id,dados`, {
         headers: headersPublicos({ Accept: 'application/json' }),
         cache: 'no-store',
       });

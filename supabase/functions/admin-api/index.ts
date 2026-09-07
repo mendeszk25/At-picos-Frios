@@ -181,9 +181,12 @@ async function login(req: Request, supabase: ReturnType<typeof createClient>) {
   }
   if (!correta) throw new ApiError(401, 'auth/password-incorrect');
 
-  // Limpa lixo antigo sem depender de cron pago.
-  await supabase.from('atipicos_sessoes').delete().lte('expira', new Date().toISOString());
-  const sessao = await criarSessao(supabase);
+  // Criar a nova sessão e limpar sessões expiradas são operações independentes.
+  // Rodá-las em paralelo economiza uma ida sequencial ao banco no login.
+  const [sessao] = await Promise.all([
+    criarSessao(supabase),
+    supabase.from('atipicos_sessoes').delete().lte('expira', new Date().toISOString()),
+  ]);
   return json(200, { sessao: sessao.token, expiraEm: sessao.expiraEm });
 }
 

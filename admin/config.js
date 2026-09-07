@@ -11,7 +11,7 @@
 */
 
 const CONFIG = {
-  whatsapp: "",           // Ex.: "https://wa.me/5581999999999"
+  whatsapp: "https://wa.me/5581994259307", // WhatsApp oficial da loja
   ifood: "",              // Ex.: "https://www.ifood.com.br/delivery/..."
   instagram: "https://www.instagram.com/atipicosfrios/",
   endereco: "",           // Ex.: "Rua Example, 123 – Gravatá, PE"

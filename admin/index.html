@@ -6,7 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Painel Administrativo — Atípicos Frios</title>
-  <link rel="icon" href="../images/logo.png">
+  <link rel="icon" href="../images/favicon-64.png" type="image/png" sizes="64x64">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="admin.css">
 
 </head>
@@ -17,7 +20,7 @@
 
   <header class="admin-header">
     <div class="admin-header-marca">
-      <img src="../images/logo.png" alt="Atípicos Frios">
+      <img src="../images/logo.webp" alt="Atípicos Frios" width="400" height="400" decoding="async">
       <div>
         <strong>Atípicos Frios</strong>
         <span>Painel Administrativo de Produtos</span>
@@ -32,8 +35,8 @@
   <main class="admin-main">
     <section class="admin-toolbar">
       <div class="admin-toolbar-busca">
-        <input type="search" id="buscaAdmin" placeholder="Buscar produto pelo nome...">
-        <select id="filtroStatusAdmin">
+        <input type="search" id="buscaAdmin" placeholder="Buscar produto pelo nome..." aria-label="Buscar produto pelo nome">
+        <select id="filtroStatusAdmin" aria-label="Filtrar produtos por status">
           <option value="todos">Todos os status</option>
           <option value="ativo">Somente ativos</option>
           <option value="inativo">Somente inativos</option>
@@ -108,7 +111,7 @@
           <div class="admin-campo campo-largo">
             <span>Imagem</span>
             <div class="admin-imagem-escolha">
-              <img id="previewImagem" class="admin-imagem-preview" src="../images/em-breve.png" alt="Pré-visualização">
+              <img id="previewImagem" class="admin-imagem-preview" src="../images/em-breve.webp" alt="Pré-visualização" width="352" height="322" decoding="async">
               <div class="admin-imagem-controles">
                 <input type="text" id="campoImagemUrl" placeholder="Deixe vazio para usar a imagem Em breve">
                 <label class="btn-admin btn-admin-secundario admin-upload-btn">
