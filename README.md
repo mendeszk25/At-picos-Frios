@@ -1,192 +1,367 @@
-# Atípicos Frios — painel administrativo gratuito e sem e-mail
+# Atípicos Frios
 
-Esta versão remove a dependência de Cloud Functions do Firebase para o login do
-painel. O Firebase continua sendo usado **somente para Hosting estático**, que
-pode permanecer no plano Spark sem cartão. O backend privado foi movido para um
-projeto Supabase Free.
+Site institucional e catálogo digital desenvolvido para a Atípicos Frios, com foco em apresentar a loja, divulgar produtos e ofertas, facilitar o contato pelo WhatsApp e permitir o gerenciamento do catálogo através de um painel administrativo.
 
-## O que foi corrigido
+O projeto foi desenvolvido com atenção à responsividade, desempenho, experiência do usuário e facilidade de manutenção.
 
-- O formulário continua pedindo **somente a senha**; não existe campo de e-mail.
-- A senha não aparece em HTML, JavaScript, localStorage, `supabase-config.js` nem
-  em respostas da API.
-- A Edge Function recebe a senha somente no POST de login por HTTPS e compara
-  PBKDF2-SHA256 com hash + salt guardados em **Secrets do Supabase**.
-- O navegador recebe apenas um token de sessão aleatório. O servidor guarda
-  somente o SHA-256 desse token e a data de expiração.
-- A sessão dura até 8 horas, fica somente em `sessionStorage` da aba e é apagada
-  no logout. O logout também remove a sessão do banco.
-- Cadastro, edição, exclusão, importação e upload de imagens passam pela Edge
-  Function e exigem sessão válida no servidor.
-- A tabela de produtos tem RLS e permite apenas leitura pública. Não existe
-  policy pública de escrita.
-- Uploads aceitam somente JPEG/PNG/WebP de até 1,5 MB e também exigem sessão.
-- Login possui limitação de tentativas por origem + limite global de proteção.
-- Mensagens agora diferenciam: senha incorreta, excesso de tentativas, sessão
-  expirada, backend não configurado, serviço indisponível e internet offline.
+## Sobre o projeto
 
-## Por que aparecia “Falha de conexão”
+A proposta do site é oferecer uma presença digital moderna para a Atípicos Frios, permitindo que clientes conheçam melhor a loja, visualizem produtos disponíveis, acompanhem ofertas e entrem em contato de forma rápida.
 
-O fluxo anterior dependia de `verificarSenhaAdmin`, uma Cloud Function do
-Firebase. A publicação de Cloud Functions exige o plano Blaze/Cloud Billing.
-Como este projeto não deve cadastrar cartão nem habilitar faturamento, a função
-não podia ser publicada pelo caminho pretendido. O cliente agrupava várias
-falhas da função/rede em uma mensagem genérica de conexão, escondendo a causa.
+Além da área pública, o projeto possui um painel administrativo próprio para gerenciamento dos produtos exibidos no catálogo.
 
-Nesta versão, `firebase.json` contém somente Hosting. Não é necessário ativar
-Cloud Functions, Cloud Build, Artifact Registry, Firebase Auth, Firestore ou
-Firebase Storage para o painel novo.
+O site foi pensado principalmente para funcionar bem em dispositivos móveis, já que grande parte dos acessos de clientes acontece pelo celular.
 
-## Arquitetura desta versão
+## Funcionalidades
 
-### Público
+### Site público
 
-`public/` contém apenas o site, `supabase-config.js` e `backend-client.js`.
-A URL do projeto e a publishable/anon key do Supabase são chaves públicas por
-natureza e podem ficar no navegador, desde que RLS esteja configurado.
+* Página inicial responsiva
+* Apresentação da Atípicos Frios
+* Catálogo de produtos
+* Produtos em destaque
+* Área de ofertas
+* Categorias de produtos
+* Navegação entre seções
+* Menu responsivo para dispositivos móveis
+* Scrollspy para destacar a seção atual na navbar
+* Botões de contato pelo WhatsApp
+* Layout adaptado para desktop, tablet e celular
+* Animações e transições
+* Imagens otimizadas
+* Carregamento otimizado de conteúdo
+* SEO básico
+* Open Graph para compartilhamento
+* Favicon personalizado
 
-### Privado
+## Catálogo de produtos
 
-Nunca publique a pasta `supabase/` como site estático. A Edge Function usa os
-Secrets padrão do projeto para acessar o banco com privilégio de servidor e os
-seguintes Secrets próprios:
+O catálogo foi desenvolvido para permitir que os produtos sejam atualizados sem necessidade de alterar manualmente o HTML principal do site.
 
-- `ATIPICOS_ADMIN_PASSWORD_HASH`
-- `ATIPICOS_ADMIN_PASSWORD_SALT`
-- `ATIPICOS_ADMIN_PASSWORD_ITERATIONS`
-- `ATIPICOS_RATE_PEPPER`
+Os produtos podem possuir informações como:
 
-O utilitário de configuração gera esses valores localmente e os envia direto ao
-Supabase. Ele não grava a senha/hash/salt nos arquivos do projeto.
+* nome;
+* descrição;
+* preço;
+* preço promocional;
+* categoria;
+* imagem;
+* destaque;
+* disponibilidade;
+* promoção.
 
-## Passos gratuitos para colocar no ar
+O frontend consulta os produtos cadastrados e gera os cards automaticamente.
 
-### 1. Criar um projeto Supabase Free
+## Painel administrativo
 
-Crie um projeto novo/dedicado no plano **Free**. Não faça upgrade para Pro e não
-adicione recurso pago.
+O projeto possui uma área administrativa separada da página principal.
 
-### 2. Criar banco, RLS e bucket
+Através dela é possível gerenciar o catálogo da loja.
 
-No Supabase Dashboard, abra o SQL Editor e execute todo o arquivo:
+Entre as funções disponíveis estão:
 
-`supabase/migrations/202609060001_atipicos.sql`
+* adicionar produtos;
+* editar produtos;
+* remover produtos;
+* alterar preços;
+* cadastrar promoções;
+* alterar imagens;
+* controlar informações exibidas no catálogo;
+* encerrar a sessão administrativa.
 
-A migration cria as tabelas, sessões, rate limit, RLS, bucket `produtos` e também
-insere o catálogo inicial sem sobrescrever IDs existentes.
+O acesso ao painel é protegido por autenticação.
 
-### 3. Obter Project Ref e chave pública
+## Segurança
 
-No Dashboard do projeto, copie:
+A senha administrativa não fica armazenada diretamente no frontend.
 
-- o **Project Ref**;
-- a **Publishable key** (ou a `anon` key legada, se seu projeto ainda mostrar esse formato).
+O sistema utiliza uma Edge Function no Supabase para realizar a validação no servidor.
 
-Depois rode:
+Entre as medidas implementadas estão:
 
-```bash
-node tools/configurar-publico.cjs
+* senha não exposta no HTML ou JavaScript;
+* autenticação realizada no backend;
+* hash seguro da senha;
+* sessões temporárias;
+* armazenamento da sessão apenas durante a navegação;
+* proteção das operações de escrita;
+* Row Level Security no Supabase;
+* limitação de tentativas de login;
+* validação de uploads;
+* bloqueio de alterações sem uma sessão administrativa válida.
+
+A chave pública do Supabase utilizada pelo navegador não concede permissão administrativa diretamente ao banco.
+
+## Tecnologias utilizadas
+
+O projeto utiliza principalmente:
+
+* HTML5
+* CSS3
+* JavaScript
+* Supabase
+* Supabase Database
+* Supabase Storage
+* Supabase Edge Functions
+* Firebase Hosting
+* Node.js
+
+O projeto não depende de frameworks frontend como React, Vue ou Angular.
+
+## Estrutura do projeto
+
+```text
+Atipicos/
+│
+├── admin/
+│   ├── index.html
+│   ├── admin.css
+│   ├── admin.js
+│   ├── config.js
+│   └── produtos-store.js
+│
+├── images/
+│
+├── supabase/
+│   ├── functions/
+│   ├── migrations/
+│   └── config.toml
+│
+├── tests/
+│   └── security.test.mjs
+│
+├── tools/
+│   ├── build.cjs
+│   ├── configurar-publico.cjs
+│   └── configurar-senha-supabase.cjs
+│
+├── index.html
+├── style.css
+├── script.js
+├── catalogo.js
+├── produtos.js
+├── backend-client.js
+├── supabase-config.js
+├── firebase.json
+├── package.json
+└── README.md
 ```
 
-Informe o Project Ref e a chave pública quando o terminal pedir. Esse comando
-atualiza `supabase-config.js`. Essa chave é pública; não use secret key nem
-`service_role` nesse arquivo.
+## Responsividade
 
-### 4. Entrar no Supabase CLI
+O site foi desenvolvido para funcionar em diferentes tamanhos de tela.
 
-```bash
-npx supabase login
+Foram considerados dispositivos como:
+
+* smartphones;
+* tablets;
+* notebooks;
+* monitores desktop.
+
+A interface utiliza recursos como Flexbox, Grid, unidades relativas e media queries para adaptar o conteúdo de acordo com o tamanho da tela.
+
+## Otimizações de desempenho
+
+O projeto recebeu otimizações para reduzir o tempo de carregamento e melhorar a experiência principalmente em dispositivos móveis.
+
+Entre elas:
+
+* conversão de imagens para WebP;
+* lazy loading em imagens fora da área inicial;
+* carregamento assíncrono de imagens;
+* preload de recursos críticos;
+* redução de JavaScript executado durante o scroll;
+* otimização do scrollspy;
+* redução de renderizações desnecessárias do catálogo;
+* redução de requisições repetidas;
+* cache para arquivos estáticos;
+* otimização do carregamento de fontes;
+* definição das dimensões de imagens para reduzir layout shift;
+* tratamento de falhas de conexão.
+
+## Core Web Vitals
+
+A estrutura do projeto foi otimizada considerando principalmente:
+
+* LCP — Largest Contentful Paint
+* CLS — Cumulative Layout Shift
+* INP — Interaction to Next Paint
+
+O objetivo é manter o carregamento inicial rápido e as interações responsivas mesmo em dispositivos menos potentes.
+
+## Backend
+
+O backend administrativo utiliza Supabase.
+
+O Supabase é responsável por:
+
+* armazenamento dos produtos;
+* controle das sessões administrativas;
+* proteção das operações de escrita;
+* armazenamento das imagens enviadas pelo painel;
+* execução da Edge Function administrativa.
+
+A página pública possui apenas permissão para leitura das informações necessárias.
+
+## Hospedagem
+
+O frontend é publicado através do Firebase Hosting.
+
+O Firebase é utilizado apenas para servir os arquivos estáticos do site.
+
+O backend administrativo funciona separadamente através do Supabase.
+
+Arquitetura simplificada:
+
+```text
+Cliente
+   |
+   v
+Firebase Hosting
+   |
+   v
+Site Atípicos Frios
+   |
+   v
+Supabase
+   |
+   ├── Database
+   ├── Storage
+   └── Edge Function
 ```
 
-### 5. Configurar a senha de administração
+## Instalação
 
-Rode:
+Clone o repositório:
 
 ```bash
-node tools/configurar-senha-supabase.cjs --project-ref SEU_PROJECT_REF
+git clone https://github.com/mendeszk25/At-picos-Frios.git
 ```
 
-Digite a senha administrativa pedida pelo proprietário quando o terminal
-solicitar e confirme. A entrada fica oculta. O utilitário usa PBKDF2-SHA256 com
-600.000 iterações, salt aleatório de 32 bytes e um pepper separado para o rate
-limit. Um arquivo temporário com permissão 0600 é criado apenas durante o envio
-e removido em seguida.
+Entre na pasta:
 
-### 6. Publicar a Edge Function sem Docker
+```bash
+cd At-picos-Frios
+```
+
+## Build
+
+O projeto possui um script responsável por preparar os arquivos que serão publicados.
+
+Execute:
+
+```bash
+npm run build
+```
+
+O resultado será gerado na pasta:
+
+```text
+public/
+```
+
+Essa é a pasta utilizada pelo Firebase Hosting.
+
+## Testes
+
+O projeto possui testes voltados principalmente para a segurança do painel administrativo.
+
+Execute:
+
+```bash
+npm test
+```
+
+Os testes verificam pontos como:
+
+* autenticação;
+* validação da senha;
+* sessões;
+* proteção das rotas administrativas;
+* permissões do banco;
+* validação de produtos;
+* validação de imagens;
+* logout;
+* exposição de informações sensíveis.
+
+## Deploy
+
+Para gerar os arquivos finais:
+
+```bash
+npm run build
+```
+
+Para publicar o frontend no Firebase Hosting:
+
+```bash
+firebase deploy --only hosting --project atipico-frios
+```
+
+Para publicar a Edge Function administrativa:
 
 ```bash
 npx supabase functions deploy admin-api --project-ref SEU_PROJECT_REF --use-api
 ```
 
-`supabase/config.toml` já marca `admin-api` com `verify_jwt = false`, porque o
-endpoint de login precisa ser alcançável antes de existir uma sessão Supabase.
-A própria função valida a chave pública, a senha, o rate limit e a sessão opaca.
-As rotas de escrita nunca confiam apenas nesse `verify_jwt = false`.
+## WhatsApp
 
-### 7. Build e testes
+O site possui integração direta com o WhatsApp da Atípicos Frios.
 
-```bash
-npm run build
-npm test
-```
+Os botões de pedido direcionam o cliente para a conversa da loja, facilitando o contato sem exigir um sistema próprio de checkout.
 
-### 8. Publicar somente o Hosting do Firebase
+## Objetivos do projeto
 
-O Firebase agora serve só os arquivos estáticos:
+Este projeto foi desenvolvido com foco em:
 
-```bash
-firebase login
-firebase deploy --only hosting --project atipico-frios
-```
+* criar presença digital para a Atípicos Frios;
+* facilitar o acesso dos clientes ao catálogo;
+* destacar produtos e promoções;
+* facilitar pedidos pelo WhatsApp;
+* permitir atualização simples do catálogo;
+* oferecer uma experiência profissional em dispositivos móveis;
+* manter baixos os custos de infraestrutura;
+* oferecer uma base que possa crescer futuramente.
 
-Não rode `firebase deploy --only functions`, não ative Cloud Build e não vincule
-Cloud Billing para este fluxo.
+## Possíveis melhorias futuras
 
-## Como testar depois do deploy
+Algumas funcionalidades que podem ser adicionadas futuramente:
 
-1. Abra o site e clique em “Adicionar produtos”.
-2. Digite uma senha errada: deve aparecer **“Senha incorreta”**.
-3. Digite a senha correta: o painel deve abrir.
-4. Cadastre/edite um produto e recarregue a loja para confirmar persistência.
-5. Clique em “Sair”: voltar ao `/admin/` deve exigir login novamente.
-6. No DevTools, tente chamar `POST /functions/v1/admin-api/products` usando apenas
-   a chave pública, sem `x-atipicos-session`: deve retornar HTTP 401.
-7. Tente `POST`/`PATCH`/`DELETE` diretamente em `/rest/v1/atipicos_produtos` com a
-   chave pública: RLS/grants devem bloquear a escrita.
+* busca avançada de produtos;
+* filtros adicionais;
+* favoritos;
+* sistema de pedidos;
+* carrinho integrado ao WhatsApp;
+* histórico de alterações administrativas;
+* dashboard com estatísticas;
+* controle de estoque;
+* analytics;
+* domínio personalizado;
+* integração com redes sociais.
 
-## Testes incluídos nesta entrega
+## Status
 
-`npm test` verifica localmente:
+Projeto funcional e em desenvolvimento contínuo.
 
-- PBKDF2 aceita a senha correta e rejeita a incorreta com segredo de teste;
-- token de sessão é aleatório e somente seu hash é persistível;
-- validação de produtos/imagens;
-- todas as rotas de mutação da Edge Function exigem `exigirSessao`;
-- RLS permite leitura pública e não cria escrita pública;
-- logout limpa a sessão do navegador;
-- alteração pelo cliente sem sessão é bloqueada antes da chamada;
-- `public/` não contém os Secrets do backend nem a senha administrativa.
+O site possui:
 
-Esses testes não substituem o teste online da Edge Function. Esta entrega **não
-pode afirmar que o login já funciona na internet** enquanto você não criar o
-projeto Supabase, aplicar a migration, configurar os Secrets, publicar a função e
-preencher a configuração pública.
+* interface pública;
+* catálogo de produtos;
+* integração com WhatsApp;
+* painel administrativo;
+* backend utilizando Supabase;
+* sistema de autenticação administrativa;
+* Firebase Hosting;
+* otimizações para mobile e desempenho.
 
-## Limites gratuitos relevantes (verifique novamente antes de produção)
+## Autor
 
-Na documentação consultada em 06/09/2026, o Supabase Free inclui 2 projetos
-ativos, 500 MB de banco, 1 GB de Storage, 500.000 invocações de Edge Functions e
-cotas de egress; projetos Free podem pausar após inatividade. Ao exceder cotas do
-Free, a documentação descreve restrições de serviço em vez de cobrança automática
-como overage do plano pago.
+Desenvolvido por Davi Gabriel.
 
-O Firebase Hosting Spark pode continuar sem método de pagamento. Consulte sempre
-as páginas oficiais de pricing antes de mudar de plano.
+GitHub: [mendeszk25](https://github.com/mendeszk25)
 
-Referências:
-- https://supabase.com/pricing
-- https://supabase.com/docs/guides/platform/billing-faq
-- https://supabase.com/docs/guides/functions/pricing
-- https://supabase.com/docs/guides/functions/secrets
-- https://firebase.google.com/pricing
-- https://firebase.google.com/docs/functions
+## Licença
+
+Este projeto foi desenvolvido para a Atípicos Frios.
+
+O uso de nome, identidade visual, logotipo, imagens e demais materiais relacionados à empresa deve respeitar os direitos de seus respectivos proprietários.
